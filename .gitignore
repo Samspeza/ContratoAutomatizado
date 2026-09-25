@@ -1,0 +1,16 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Node / Vite
+node_modules/
+frontend/dist/
+
+# Dados locais gerados
+storage/
+*.db
+
+# IDE
+.vs/
+.vscode/
