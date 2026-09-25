@@ -1,24 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import type { Empresa } from './types/empresa'
+import { ConsultaCnpj } from './components/ConsultaCnpj'
+import './App.css'
 
 function App() {
-  const [status, setStatus] = useState<'checking' | 'ok' | 'error'>('checking')
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((res) => {
-        if (!res.ok) throw new Error('Resposta inválida')
-        return res.json()
-      })
-      .then(() => setStatus('ok'))
-      .catch(() => setStatus('error'))
-  }, [])
+  const [, setEmpresaSelecionada] = useState<Empresa | null>(null)
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
+    <div style={{ fontFamily: 'sans-serif', padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Contrato Automatizado</h1>
-      {status === 'checking' && <p>Verificando conexão com o backend...</p>}
-      {status === 'ok' && <p style={{ color: 'green' }}>Backend conectado com sucesso.</p>}
-      {status === 'error' && <p style={{ color: 'red' }}>Não foi possível conectar ao backend.</p>}
+      <ConsultaCnpj onEmpresaEncontrada={setEmpresaSelecionada} />
     </div>
   )
 }
