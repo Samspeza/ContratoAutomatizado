@@ -9,7 +9,7 @@ public static class CnpjEndpoints
 {
     public static void MapCnpjEndpoints(this WebApplication app)
     {
-        app.MapGet("/api/cnpj", async (string numero, ICnpjConsultaService consultaService) =>
+        app.MapGet("/api/cnpj", async (string numero, ICnpjConsultaService consultaService, ILogger<Program> logger) =>
         {
             Cnpj cnpjValido;
             try
@@ -32,8 +32,10 @@ public static class CnpjEndpoints
             }
             catch (ConsultaCnpjIndisponivelException ex)
             {
+                logger.LogWarning(ex, "Consulta de CNPJ indisponível para {Cnpj}.", cnpjValido.Numero);
                 return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
             }
-        });
+        })
+        .RequireRateLimiting("ConsultaCnpj");
     }
 }

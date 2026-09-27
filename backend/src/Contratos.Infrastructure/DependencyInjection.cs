@@ -1,5 +1,7 @@
 using Contratos.Application.Interfaces;
 using Contratos.Infrastructure.Cnpj;
+using Contratos.Infrastructure.Documents;
+using Contratos.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +24,10 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "ContratoAutomatizado/1.0");
         });
+
+        services.AddSingleton<IGeradorDocumentoService, OpenXmlGeradorDocumentoService>();
+        services.AddSingleton<IArmazenamentoContratoService, ArmazenamentoContratoLocalService>();
+        services.AddSingleton<IPdfConversorService, LibreOfficePdfConversorService>();
 
         return services;
     }
