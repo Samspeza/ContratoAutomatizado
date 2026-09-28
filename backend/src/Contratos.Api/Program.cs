@@ -1,10 +1,35 @@
+using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Contratos.Api.Endpoints;
 using Contratos.Api.Middleware;
 using Contratos.Infrastructure;
+using Contratos.Infrastructure.Storage;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+// A raiz da aplicação é a pasta do executável (e não a "pasta atual" de quem o iniciou),
+// para que o wwwroot e o appsettings sejam encontrados mesmo quando aberto por um atalho.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
+
+var pastas = new PastasAplicacao(builder.Configuration);
+pastas.GarantirEstrutura();
+
+if (string.IsNullOrWhiteSpace(builder.Configuration["Documentos:CaminhoTemplate"]))
+    TemplatePadraoInicializador.GarantirTemplate(pastas);
+
+builder.Host.UseSerilog((contexto, servicos, configuracaoLog) => configuracaoLog
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .WriteTo.Console()
+    .WriteTo.File(
+        Path.Combine(pastas.Logs, "log-.txt"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30));
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -51,9 +76,35 @@ app.UseMiddleware<TratamentoGlobalDeErrosMiddleware>();
 app.UseCors("Frontend");
 app.UseRateLimiter();
 
+// Serve o React já compilado (pasta wwwroot) pelo próprio backend.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 app.MapCnpjEndpoints();
 app.MapContratoEndpoints();
+
+app.MapFallbackToFile("index.html");
+
+// Quando iniciado pela janela do sistema (--parent-pid <id>), o servidor se encerra
+// sozinho se a janela deixar de existir, para não sobrar processo rodando em segundo plano.
+if (int.TryParse(builder.Configuration["parent-pid"], out var idProcessoPai))
+{
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            using var processoPai = Process.GetProcessById(idProcessoPai);
+            await processoPai.WaitForExitAsync();
+        }
+        catch (ArgumentException)
+        {
+            // o processo pai já não existe
+        }
+
+        app.Lifetime.StopApplication();
+    });
+}
 
 app.Run();
 

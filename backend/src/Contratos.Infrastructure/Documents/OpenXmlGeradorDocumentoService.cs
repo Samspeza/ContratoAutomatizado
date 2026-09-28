@@ -1,6 +1,7 @@
 using System.Globalization;
 using Contratos.Application.DTOs;
 using Contratos.Application.Interfaces;
+using Contratos.Infrastructure.Storage;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.Extensions.Configuration;
@@ -13,8 +14,11 @@ public sealed class OpenXmlGeradorDocumentoService : IGeradorDocumentoService
 
     public OpenXmlGeradorDocumentoService(IConfiguration configuration)
     {
-        _caminhoTemplate = configuration["Documentos:CaminhoTemplate"]
-            ?? throw new InvalidOperationException("Configuração 'Documentos:CaminhoTemplate' não encontrada.");
+        var caminhoConfigurado = configuration["Documentos:CaminhoTemplate"];
+
+        _caminhoTemplate = string.IsNullOrWhiteSpace(caminhoConfigurado)
+            ? Path.Combine(new PastasAplicacao(configuration).Templates, TemplatePadraoInicializador.NomeArquivoTemplate)
+            : caminhoConfigurado;
     }
 
     public byte[] GerarContrato(DadosContratoDto dados)
@@ -87,10 +91,8 @@ public sealed class OpenXmlGeradorDocumentoService : IGeradorDocumentoService
             ["{{COMPLEMENTO_ENDERECO_CONTRATANTE}}"] = dados.ComplementoEndereco ?? string.Empty,
             ["{{RESPONSAVEL_1}}"] = responsavel1,
             ["{{RESPONSAVEL_2}}"] = responsavel2,
-            ["{{DATA_CONTRATO_NUMERICA}}"] = $"Data: {dados.DataContrato?.ToString("dd/MM/yyyy") ?? string.Empty}",
-            ["{{DATA_CONTRATO_EXTENSO}}"] = dados.DataContrato.HasValue
-                ? $"{dados.DataContrato.Value.ToString("d 'de' MMMM 'de' yyyy", cultura)}."
-                : string.Empty,
+            ["{{DATA_CONTRATO_NUMERICA}}"] = $"Data: {dados.DataContrato:dd/MM/yyyy}",
+            ["{{DATA_CONTRATO_EXTENSO}}"] = $"{dados.DataContrato?.ToString("d 'de' MMMM 'de' yyyy", cultura)}.",
             ["{{PERCENTUAL_HONORARIOS}}"] = NumeroPorExtenso.FormatarPercentual(dados.PercentualHonorarios),
             ["{{QUANTIDADE_PARCELAS}}"] = NumeroPorExtenso.FormatarParcelas(dados.QuantidadeParcelas)
         };

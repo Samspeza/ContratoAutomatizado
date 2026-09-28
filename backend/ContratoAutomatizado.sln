@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contratos.Infrastructure", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contratos.Tests", "src\Contratos.Tests\Contratos.Tests.csproj", "{CDEB44B3-F318-47BD-B6CA-E429108F00B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContratoAutomatizado.Desktop", "..\desktop-host\ContratoAutomatizado.Desktop\ContratoAutomatizado.Desktop.csproj", "{F6772999-3BA2-4D56-A05F-E9F52E6F5601}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,18 @@ Global
 		{CDEB44B3-F318-47BD-B6CA-E429108F00B3}.Release|x64.Build.0 = Release|Any CPU
 		{CDEB44B3-F318-47BD-B6CA-E429108F00B3}.Release|x86.ActiveCfg = Release|Any CPU
 		{CDEB44B3-F318-47BD-B6CA-E429108F00B3}.Release|x86.Build.0 = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|x64.Build.0 = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Debug|x86.Build.0 = Debug|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|x64.ActiveCfg = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|x64.Build.0 = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|x86.ActiveCfg = Release|Any CPU
+		{F6772999-3BA2-4D56-A05F-E9F52E6F5601}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

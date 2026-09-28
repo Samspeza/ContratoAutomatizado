@@ -9,11 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.18" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Contratos.Application\Contratos.Application.csproj" />
     <ProjectReference Include="..\Contratos.Infrastructure\Contratos.Infrastructure.csproj" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Include="..\..\..\templates\contratos\modelo.docx"
+             Link="Templates\modelo.docx"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
