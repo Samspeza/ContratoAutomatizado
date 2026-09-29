@@ -33,7 +33,7 @@ export function ResponsavelAssinatura({
       />
       {erroNome && <p role="alert" style={{ color: '#b00020' }}>{erroNome}</p>}
 
-      <label htmlFor={`cpf-${indice}`}>CPF</label>
+      <label htmlFor={`cpf-${indice}`}>CPF (opcional)</label>
       <input
         id={`cpf-${indice}`}
         type="text"

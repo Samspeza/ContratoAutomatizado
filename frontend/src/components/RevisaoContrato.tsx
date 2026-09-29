@@ -40,7 +40,10 @@ export function RevisaoContrato({ empresa, dados, gerando, onConfirmar, onVoltar
         <dt>{dados.responsaveis.length > 1 ? 'RESPONSÁVEIS' : 'RESPONSÁVEL'}</dt>
         <dd>
           {dados.responsaveis.map((responsavel, indice) => (
-            <div key={indice}>{responsavel.nome} — CPF {responsavel.cpf}</div>
+            <div key={indice}>
+              {responsavel.nome}
+              {responsavel.cpf ? ` — CPF ${responsavel.cpf}` : ''}
+            </div>
           ))}
         </dd>
       </dl>

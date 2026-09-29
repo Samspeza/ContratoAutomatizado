@@ -63,7 +63,8 @@ export function DadosContrato({ onDadosConfirmados }: DadosContratoProps) {
       if (!responsavel.nome.trim()) {
         erroResponsavel.nome = 'Informe o nome do responsável.'
       }
-      if (apenasDigitosCpf(responsavel.cpf).length !== 11 || !cpfValido(responsavel.cpf)) {
+      const cpfFoiPreenchido = apenasDigitosCpf(responsavel.cpf).length > 0
+      if (cpfFoiPreenchido && !cpfValido(responsavel.cpf)) {
         erroResponsavel.cpf = 'CPF inválido.'
       }
       return erroResponsavel

@@ -139,5 +139,13 @@ public class DadosContratoValidatorTests
 
         Assert.Contains(excecao.Mensagens, m => m.Contains("data"));
     }
+
+    [Fact]
+    public void Validar_ComCpfNaoInformado_NaoDeveLancarExcecao()
+    {
+        var dados = CriarDadosValidos(responsaveis: new List<ResponsavelAssinaturaDto> { new("Nome Teste", "") });
+        var excecao = Record.Exception(() => DadosContratoValidator.Validar(dados));
+        Assert.Null(excecao);
+    }
 }
 

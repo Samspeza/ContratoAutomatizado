@@ -40,7 +40,8 @@ public static class DadosContratoValidator
                 if (string.IsNullOrWhiteSpace(responsavel.Nome))
                     mensagens.Add("O nome do responsável pela assinatura é obrigatório.");
 
-                if (!Cpf.EhValido(responsavel.Cpf))
+                // O CPF é opcional: só valida o formato quando algo foi informado.
+                if (!string.IsNullOrWhiteSpace(responsavel.Cpf) && !Cpf.EhValido(responsavel.Cpf))
                     mensagens.Add($"CPF inválido para o responsável \"{responsavel.Nome}\".");
             }
         }

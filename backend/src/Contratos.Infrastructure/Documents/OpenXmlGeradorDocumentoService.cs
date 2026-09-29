@@ -86,7 +86,7 @@ public sealed class OpenXmlGeradorDocumentoService : IGeradorDocumentoService
         return new Dictionary<string, string>
         {
             ["{{RAZAO_SOCIAL_CONTRATANTE}}"] = dados.Empresa.RazaoSocial,
-            ["{{CNPJ_CONTRATANTE}}"] = $"CNPJ nº {dados.Empresa.Cnpj}",
+            ["{{CNPJ_CONTRATANTE}}"] = $"CNPJ nº {FormatarCnpj(dados.Empresa.Cnpj)}",
             ["{{ENDERECO_CONTRATANTE}}"] = endereco,
             ["{{COMPLEMENTO_ENDERECO_CONTRATANTE}}"] = dados.ComplementoEndereco ?? string.Empty,
             ["{{RESPONSAVEL_1}}"] = responsavel1,
@@ -96,6 +96,14 @@ public sealed class OpenXmlGeradorDocumentoService : IGeradorDocumentoService
             ["{{PERCENTUAL_HONORARIOS}}"] = NumeroPorExtenso.FormatarPercentual(dados.PercentualHonorarios),
             ["{{QUANTIDADE_PARCELAS}}"] = NumeroPorExtenso.FormatarParcelas(dados.QuantidadeParcelas)
         };
+    }
+
+    private static string FormatarCnpj(string cnpj)
+    {
+        var digitos = new string(cnpj.Where(char.IsDigit).ToArray());
+        if (digitos.Length != 14) return cnpj; // valor inesperado — não arrisca formatar errado
+
+        return $"{digitos[..2]}.{digitos[2..5]}.{digitos[5..8]}/{digitos[8..12]}-{digitos[12..14]}";
     }
 
     private static string MontarEnderecoFormatado(EmpresaDto empresa)
@@ -112,6 +120,8 @@ public sealed class OpenXmlGeradorDocumentoService : IGeradorDocumentoService
 
     private static string FormatarResponsavel(ResponsavelAssinaturaDto responsavel)
     {
-        return $"Att. Sr(a). {responsavel.Nome} - CPF {responsavel.Cpf}";
+        return string.IsNullOrWhiteSpace(responsavel.Cpf)
+            ? $"Att. Sr(a). {responsavel.Nome}"
+            : $"Att. Sr(a). {responsavel.Nome} - CPF {responsavel.Cpf}";
     }
 }
