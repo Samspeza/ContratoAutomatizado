@@ -21,31 +21,35 @@ export function ResponsavelAssinatura({
   onRemover
 }: ResponsavelAssinaturaProps) {
   return (
-    <fieldset>
+    <fieldset className="responsavel">
       <legend>Responsável pela assinatura {indice + 1}</legend>
 
-      <label htmlFor={`nome-${indice}`}>Nome</label>
-      <input
-        id={`nome-${indice}`}
-        type="text"
-        value={responsavel.nome}
-        onChange={(e) => onAlterar({ ...responsavel, nome: e.target.value })}
-      />
-      {erroNome && <p role="alert" style={{ color: '#b00020' }}>{erroNome}</p>}
+      <div className="campo">
+        <label htmlFor={`nome-${indice}`}>Nome</label>
+        <input
+          id={`nome-${indice}`}
+          type="text"
+          value={responsavel.nome}
+          onChange={(e) => onAlterar({ ...responsavel, nome: e.target.value })}
+        />
+        {erroNome && <p className="mensagem mensagem--erro" role="alert">{erroNome}</p>}
+      </div>
 
-      <label htmlFor={`cpf-${indice}`}>CPF (opcional)</label>
-      <input
-        id={`cpf-${indice}`}
-        type="text"
-        value={formatarCpf(responsavel.cpf)}
-        onChange={(e) => onAlterar({ ...responsavel, cpf: e.target.value })}
-        placeholder="000.000.000-00"
-        maxLength={14}
-      />
-      {erroCpf && <p role="alert" style={{ color: '#b00020' }}>{erroCpf}</p>}
+      <div className="campo">
+        <label htmlFor={`cpf-${indice}`}>CPF (opcional)</label>
+        <input
+          id={`cpf-${indice}`}
+          type="text"
+          value={formatarCpf(responsavel.cpf)}
+          onChange={(e) => onAlterar({ ...responsavel, cpf: e.target.value })}
+          placeholder="000.000.000-00"
+          maxLength={14}
+        />
+        {erroCpf && <p className="mensagem mensagem--erro" role="alert">{erroCpf}</p>}
+      </div>
 
       {podeRemover && (
-        <button type="button" onClick={onRemover}>
+        <button type="button" className="botao botao--texto" onClick={onRemover}>
           Remover este responsável
         </button>
       )}

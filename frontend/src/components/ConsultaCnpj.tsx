@@ -36,20 +36,25 @@ export function ConsultaCnpj({ onEmpresaEncontrada }: ConsultaCnpjProps) {
   }
 
   return (
-    <section>
-      <h2>Nova contratação</h2>
+    <section className="cartao">
+      <h2 className="cartao__titulo">Nova contratação</h2>
+      <p className="cartao__descricao">Informe o CNPJ da empresa contratante para começar.</p>
 
-      <label htmlFor="cnpj">CNPJ</label>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input
-          id="cnpj"
-          type="text"
-          value={formatarCnpj(cnpjDigitado)}
-          onChange={(e) => setCnpjDigitado(e.target.value)}
-          placeholder="00.000.000/0000-00"
-          maxLength={18}
-        />
+      <div className="linha-cnpj">
+        <div className="campo">
+          <label htmlFor="cnpj">CNPJ</label>
+          <input
+            id="cnpj"
+            type="text"
+            value={formatarCnpj(cnpjDigitado)}
+            onChange={(e) => setCnpjDigitado(e.target.value)}
+            placeholder="00.000.000/0000-00"
+            maxLength={18}
+          />
+        </div>
         <button
+          type="button"
+          className="botao botao--primario"
           onClick={handleConsultar}
           disabled={!cnpjTemTamanhoValido || status === 'consultando'}
         >
@@ -57,13 +62,11 @@ export function ConsultaCnpj({ onEmpresaEncontrada }: ConsultaCnpjProps) {
         </button>
       </div>
 
-      {status === 'consultando' && <p>Consultando CNPJ...</p>}
-      {status === 'erro' && (
-        <p role="alert" style={{ color: '#b00020' }}>{mensagemErro}</p>
-      )}
+      {status === 'consultando' && <p className="mensagem mensagem--info">Consultando CNPJ...</p>}
+      {status === 'erro' && <p className="mensagem mensagem--erro" role="alert">{mensagemErro}</p>}
       {status === 'encontrada' && (
         <>
-          <p style={{ color: '#1a7f37' }}>Empresa encontrada.</p>
+          <p className="mensagem mensagem--sucesso">Empresa encontrada.</p>
           {empresa && <DadosEmpresa empresa={empresa} />}
         </>
       )}

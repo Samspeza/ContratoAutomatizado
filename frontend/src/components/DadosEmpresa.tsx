@@ -9,15 +9,13 @@ export function DadosEmpresa({ empresa }: DadosEmpresaProps) {
 
   return (
     <div>
-      <h3>Dados da empresa</h3>
-
       {enderecoIncompleto && (
-        <p role="alert" style={{ color: '#8a6d00' }}>
+        <p className="mensagem mensagem--aviso" role="alert">
           Os dados da empresa foram encontrados, mas o endereço não foi retornado pela fonte consultada.
         </p>
       )}
 
-      <dl>
+      <dl className="dados-lista">
         <dt>CNPJ</dt>
         <dd>{empresa.cnpj}</dd>
 

@@ -1,26 +1,259 @@
-input {
-  padding: 0.5rem;
-  font-size: 1rem;
+.aplicacao {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem 4rem;
+}
+
+/* Cabeçalho com a marca */
+.cabecalho {
+  width: 100%;
+  max-width: 640px;
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 3px solid var(--cor-acento);
+  margin-bottom: 2rem;
+}
+
+.cabecalho__marca {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.cabecalho__logo {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--cor-primaria);
+}
+
+.cabecalho__subtitulo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.cabecalho__produto {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.conteudo {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Indicador de etapas */
+.etapas {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.etapa {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.etapa__marcador {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cor-borda);
+}
+
+.etapa--concluida .etapa__marcador,
+.etapa--atual .etapa__marcador {
+  background: var(--cor-acento);
+}
+
+.etapa__rotulo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.etapa--atual .etapa__rotulo {
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+/* Cartão de cada etapa */
+.cartao {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 6px;
+  padding: 1.75rem;
+}
+
+.cartao__titulo {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cartao__descricao {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave);
+}
+
+/* Formulários */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.1rem;
+}
+
+.campo label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.campo input {
+  font-family: var(--fonte-base);
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.campo input:focus {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
+  border-color: var(--cor-acento);
+}
+
+.campo-com-sufixo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.campo-com-sufixo input {
   flex: 1;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
+.campo-com-sufixo__unidade {
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+}
+
+.linha-cnpj {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.linha-cnpj .campo {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.responsavel {
+  border: 1px solid var(--cor-borda);
+  border-radius: 5px;
+  padding: 1rem 1.1rem 0.2rem;
+  margin: 0 0 1.1rem;
+}
+
+.responsavel legend {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0 0.4rem;
+  color: var(--cor-texto-suave);
+}
+
+/* Botões */
+.acoes {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.botao {
+  font-family: var(--fonte-base);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.3rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
   cursor: pointer;
 }
 
-button:disabled {
+.botao--primario {
+  background: var(--cor-acento);
+  color: #fff;
+}
+
+.botao--primario:hover:not(:disabled) {
+  background: var(--cor-acento-escuro);
+}
+
+.botao--secundario {
+  background: transparent;
+  border-color: var(--cor-borda);
+  color: var(--cor-texto);
+}
+
+.botao--secundario:hover:not(:disabled) {
+  border-color: var(--cor-texto-suave);
+}
+
+.botao--texto {
+  background: transparent;
+  border: none;
+  color: var(--cor-acento);
+  font-weight: 600;
+  padding: 0.3rem 0;
+}
+
+.botao:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-dl {
+/* Mensagens de status */
+.mensagem {
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.87rem;
+  margin: 0.75rem 0 0;
+}
+
+.mensagem--erro { background: var(--cor-erro-fundo); color: var(--cor-erro); }
+.mensagem--sucesso { background: var(--cor-sucesso-fundo); color: var(--cor-sucesso); }
+.mensagem--aviso { background: var(--cor-aviso-fundo); color: var(--cor-aviso); }
+.mensagem--info { color: var(--cor-texto-suave); }
+
+/* Listas de dados (conferência e revisão) */
+.dados-lista {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 1rem;
+  grid-template-columns: 130px 1fr;
+  gap: 0.55rem 1rem;
+  margin: 0;
 }
 
-dt {
-  font-weight: bold;
+.dados-lista dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.dados-lista dd {
+  margin: 0;
+  font-size: 0.92rem;
 }

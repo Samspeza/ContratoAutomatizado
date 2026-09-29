@@ -93,37 +93,46 @@ export function DadosContrato({ onDadosConfirmados }: DadosContratoProps) {
   }
 
   return (
-    <section>
-      <h2>Dados do contrato</h2>
+    <section className="cartao">
+      <h2 className="cartao__titulo">Dados do contrato</h2>
+      <p className="cartao__descricao">Preencha as informações específicas desta contratação.</p>
 
-      <label htmlFor="honorarios">Percentual de honorários</label>
-      <input
-        id="honorarios"
-        type="number"
-        step="0.01"
-        value={percentualHonorarios}
-        onChange={(e) => setPercentualHonorarios(e.target.value)}
-      />
-      {' '}%
-      {erros.honorarios && <p role="alert" style={{ color: '#b00020' }}>{erros.honorarios}</p>}
+      <div className="campo">
+        <label htmlFor="honorarios">Percentual de honorários</label>
+        <div className="campo-com-sufixo">
+          <input
+            id="honorarios"
+            type="number"
+            step="0.01"
+            value={percentualHonorarios}
+            onChange={(e) => setPercentualHonorarios(e.target.value)}
+          />
+          <span className="campo-com-sufixo__unidade">%</span>
+        </div>
+        {erros.honorarios && <p className="mensagem mensagem--erro" role="alert">{erros.honorarios}</p>}
+      </div>
 
-      <label htmlFor="parcelas">Quantidade de parcelas</label>
-      <input
-        id="parcelas"
-        type="number"
-        value={quantidadeParcelas}
-        onChange={(e) => setQuantidadeParcelas(e.target.value)}
-      />
-      {erros.parcelas && <p role="alert" style={{ color: '#b00020' }}>{erros.parcelas}</p>}
+      <div className="campo">
+        <label htmlFor="parcelas">Quantidade de parcelas</label>
+        <input
+          id="parcelas"
+          type="number"
+          value={quantidadeParcelas}
+          onChange={(e) => setQuantidadeParcelas(e.target.value)}
+        />
+        {erros.parcelas && <p className="mensagem mensagem--erro" role="alert">{erros.parcelas}</p>}
+      </div>
 
-      <label htmlFor="data">Data do contrato</label>
-      <input
-        id="data"
-        type="date"
-        value={dataContrato}
-        onChange={(e) => setDataContrato(e.target.value)}
-      />
-      {erros.data && <p role="alert" style={{ color: '#b00020' }}>{erros.data}</p>}
+      <div className="campo">
+        <label htmlFor="data">Data do contrato</label>
+        <input
+          id="data"
+          type="date"
+          value={dataContrato}
+          onChange={(e) => setDataContrato(e.target.value)}
+        />
+        {erros.data && <p className="mensagem mensagem--erro" role="alert">{erros.data}</p>}
+      </div>
 
       {responsaveis.map((responsavel, indice) => (
         <ResponsavelAssinatura
@@ -139,13 +148,13 @@ export function DadosContrato({ onDadosConfirmados }: DadosContratoProps) {
       ))}
 
       {responsaveis.length < CONFIG_CONTRATO.responsaveis.maximo && (
-        <button type="button" onClick={adicionarResponsavel}>
-          Adicionar outro responsável
+        <button type="button" className="botao botao--texto" onClick={adicionarResponsavel}>
+          + Adicionar outro responsável
         </button>
       )}
 
-      <div>
-        <button type="button" onClick={handleContinuar}>
+      <div className="acoes">
+        <button type="button" className="botao botao--primario" onClick={handleContinuar}>
           Continuar
         </button>
       </div>

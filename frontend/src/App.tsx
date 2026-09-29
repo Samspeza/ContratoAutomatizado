@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Empresa } from './types/empresa'
 import type { DadosContrato as DadosContratoType } from './types/dadosContrato'
+import { Cabecalho } from './components/Cabecalho'
+import { IndicadorEtapas, type EtapaFluxo } from './components/IndicadorEtapas'
 import { ConsultaCnpj } from './components/ConsultaCnpj'
 import { DadosContrato } from './components/DadosContrato'
 import { RevisaoContrato } from './components/RevisaoContrato'
@@ -18,8 +20,6 @@ function App() {
   const [chaveReinicio, setChaveReinicio] = useState(0)
 
   function handleEmpresaEncontrada(empresa: Empresa) {
-    // Sempre que uma nova consulta de CNPJ é feita, qualquer dado de contrato
-    // e resultado anteriores deixam de valer para essa empresa — reinicia o fluxo a partir daqui.
     setEmpresaSelecionada(empresa)
     setDadosContrato(null)
     setResultadoGeracao(null)
@@ -62,45 +62,59 @@ function App() {
     setDadosContrato(null)
     setResultadoGeracao(null)
     setEtapa('formulario')
-    setChaveReinicio((chave) => chave + 1) // força o ConsultaCnpj a remontar, limpando o campo de CNPJ
+    setChaveReinicio((chave) => chave + 1)
   }
 
+  const etapaIndicador: EtapaFluxo = !empresaSelecionada
+    ? 'consulta'
+    : etapa === 'formulario'
+      ? 'dados'
+      : etapa === 'revisao'
+        ? 'revisao'
+        : 'concluido'
+
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Contrato Automatizado</h1>
+    <div className="aplicacao">
+      <Cabecalho />
 
-      <ConsultaCnpj key={chaveReinicio} onEmpresaEncontrada={handleEmpresaEncontrada} />
+      <div className="conteudo">
+        <IndicadorEtapas etapaAtual={etapaIndicador} />
 
-      {empresaSelecionada && etapa === 'formulario' && (
-        <DadosContrato onDadosConfirmados={handleDadosConfirmados} />
-      )}
+        <ConsultaCnpj key={chaveReinicio} onEmpresaEncontrada={handleEmpresaEncontrada} />
 
-      {empresaSelecionada && dadosContrato && etapa === 'revisao' && (
-        <RevisaoContrato
-          empresa={empresaSelecionada}
-          dados={dadosContrato}
-          gerando={gerando}
-          onConfirmar={handleConfirmarGeracao}
-          onVoltar={handleVoltarParaEdicao}
-        />
-      )}
+        {empresaSelecionada && etapa === 'formulario' && (
+          <DadosContrato onDadosConfirmados={handleDadosConfirmados} />
+        )}
 
-      {resultadoGeracao && !resultadoGeracao.sucesso && (
-        <p role="alert" style={{ color: '#b00020' }}>{resultadoGeracao.mensagem}</p>
-      )}
+        {empresaSelecionada && dadosContrato && etapa === 'revisao' && (
+          <RevisaoContrato
+            empresa={empresaSelecionada}
+            dados={dadosContrato}
+            gerando={gerando}
+            onConfirmar={handleConfirmarGeracao}
+            onVoltar={handleVoltarParaEdicao}
+          />
+        )}
 
-      {etapa === 'resultado' && resultadoGeracao?.sucesso && (
-        <section>
-          <h2>Contrato gerado</h2>
-          <p style={{ color: '#1a7f37' }}>
-            Arquivos gerados: <strong>{resultadoGeracao.arquivoDocx}</strong> e <strong>{resultadoGeracao.arquivoPdf}</strong>
-          </p>
-          <p>PDF salvo em: {resultadoGeracao.caminhoCompletoPdf}</p>
-          <button type="button" onClick={handleNovoContrato}>
-            Gerar novo contrato
-          </button>
-        </section>
-      )}
+        {resultadoGeracao && !resultadoGeracao.sucesso && (
+          <p className="mensagem mensagem--erro" role="alert">{resultadoGeracao.mensagem}</p>
+        )}
+
+        {etapa === 'resultado' && resultadoGeracao?.sucesso && (
+          <section className="cartao">
+            <h2 className="cartao__titulo">Contrato gerado</h2>
+            <p className="mensagem mensagem--sucesso">
+              Arquivos gerados: <strong>{resultadoGeracao.arquivoDocx}</strong> e <strong>{resultadoGeracao.arquivoPdf}</strong>
+            </p>
+            <p className="mensagem mensagem--info">PDF salvo em: {resultadoGeracao.caminhoCompletoPdf}</p>
+            <div className="acoes">
+              <button type="button" className="botao botao--primario" onClick={handleNovoContrato}>
+                Gerar novo contrato
+              </button>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   )
 }
