@@ -4,7 +4,7 @@ const ETAPAS: { chave: EtapaFluxo; rotulo: string }[] = [
   { chave: 'consulta', rotulo: 'Consulta' },
   { chave: 'dados', rotulo: 'Dados do contrato' },
   { chave: 'revisao', rotulo: 'Revisão' },
-  { chave: 'concluido', rotulo: 'Concluído' }
+  { chave: 'concluido', rotulo: 'Documento gerado' }
 ]
 
 interface IndicadorEtapasProps {

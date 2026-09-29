@@ -143,8 +143,15 @@ public class DadosContratoValidatorTests
     [Fact]
     public void Validar_ComCpfNaoInformado_NaoDeveLancarExcecao()
     {
-        var dados = CriarDadosValidos(responsaveis: new List<ResponsavelAssinaturaDto> { new("Nome Teste", "") });
+        var dados = CriarDadosValidos(
+            data: new DateOnly(2026, 9, 25),
+            responsaveis: new List<ResponsavelAssinaturaDto>
+            {
+                new("Nome Teste", "")
+            });
+
         var excecao = Record.Exception(() => DadosContratoValidator.Validar(dados));
+
         Assert.Null(excecao);
     }
 }

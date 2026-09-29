@@ -1,7 +1,9 @@
 using Contratos.Application.Interfaces;
 using Contratos.Infrastructure.Cnpj;
 using Contratos.Infrastructure.Documents;
+using Contratos.Infrastructure.Persistence;
 using Contratos.Infrastructure.Storage;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,6 +30,14 @@ public static class DependencyInjection
         services.AddSingleton<IGeradorDocumentoService, OpenXmlGeradorDocumentoService>();
         services.AddSingleton<IArmazenamentoContratoService, ArmazenamentoContratoLocalService>();
         services.AddSingleton<IPdfConversorService, LibreOfficePdfConversorService>();
+
+        var pastas = new PastasAplicacao(configuration);
+        var caminhoBanco = Path.Combine(pastas.Dados, "contratos.db");
+
+        services.AddDbContext<ContratosDbContext>(opcoes =>
+            opcoes.UseSqlite($"Data Source={caminhoBanco}"));
+
+        services.AddScoped<IContratoRepository, ContratoRepository>();
 
         return services;
     }

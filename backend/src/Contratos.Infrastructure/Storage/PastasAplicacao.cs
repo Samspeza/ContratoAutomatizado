@@ -8,6 +8,7 @@ public sealed class PastasAplicacao
     public string Templates { get; }
     public string ContratosGerados { get; }
     public string Logs { get; }
+    public string Dados { get; }
 
     public PastasAplicacao(IConfiguration configuration)
     {
@@ -21,6 +22,7 @@ public sealed class PastasAplicacao
 
         Templates = Path.Combine(Raiz, "Templates");
         Logs = Path.Combine(Raiz, "Logs");
+        Dados = Path.Combine(Raiz, "Dados");
 
         var contratosConfigurada = configuration["Armazenamento:PastaContratosGerados"];
         ContratosGerados = string.IsNullOrWhiteSpace(contratosConfigurada)
@@ -34,5 +36,6 @@ public sealed class PastasAplicacao
         Directory.CreateDirectory(Templates);
         Directory.CreateDirectory(ContratosGerados);
         Directory.CreateDirectory(Logs);
+        Directory.CreateDirectory(Dados);
     }
 }
