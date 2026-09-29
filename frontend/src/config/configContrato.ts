@@ -5,10 +5,12 @@ export const CONFIG_CONTRATO = {
   },
   honorarios: {
     minimoPercentual: 0.01,
-    maximoPercentual: 100
+    maximoPercentual: 100,
+    valorPadrao: 25
   },
   parcelas: {
     minimo: 1,
-    maximo: 60
+    maximo: 60,
+    valorPadrao: 3
   }
 } as const

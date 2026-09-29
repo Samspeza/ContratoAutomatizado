@@ -18,8 +18,8 @@ interface Erros {
 const responsavelVazio: ResponsavelAssinaturaType = { nome: '', cpf: '' }
 
 export function DadosContrato({ onDadosConfirmados }: DadosContratoProps) {
-  const [percentualHonorarios, setPercentualHonorarios] = useState('')
-  const [quantidadeParcelas, setQuantidadeParcelas] = useState('')
+  const [percentualHonorarios, setPercentualHonorarios] = useState(String(CONFIG_CONTRATO.honorarios.valorPadrao))
+  const [quantidadeParcelas, setQuantidadeParcelas] = useState(String(CONFIG_CONTRATO.parcelas.valorPadrao))
   const [dataContrato, setDataContrato] = useState('')
   const [responsaveis, setResponsaveis] = useState<ResponsavelAssinaturaType[]>([{ ...responsavelVazio }])
   const [erros, setErros] = useState<Erros>({ responsaveis: [] })
