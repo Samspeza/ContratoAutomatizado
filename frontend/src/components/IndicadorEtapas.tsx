@@ -1,10 +1,11 @@
-export type EtapaFluxo = 'consulta' | 'dados' | 'revisao' | 'concluido'
+export type EtapaFluxo = 'consulta' | 'dados' | 'revisao' | 'documento' | 'envio'
 
 const ETAPAS: { chave: EtapaFluxo; rotulo: string }[] = [
   { chave: 'consulta', rotulo: 'Consulta' },
   { chave: 'dados', rotulo: 'Dados do contrato' },
   { chave: 'revisao', rotulo: 'Revisão' },
-  { chave: 'concluido', rotulo: 'Documento gerado' }
+  { chave: 'documento', rotulo: 'Documento gerado' },
+  { chave: 'envio', rotulo: 'Envio' }
 ]
 
 interface IndicadorEtapasProps {

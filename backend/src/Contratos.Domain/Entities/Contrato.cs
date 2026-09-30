@@ -130,4 +130,23 @@ public sealed class Contrato
             Status = StatusContrato.ErroNoEnvio;
         }
     }
+    public void AvancarParaEnvio()
+    {
+        if (Status != StatusContrato.Gerado)
+            throw new InvalidOperationException("Só é possível avançar para o envio um contrato que já foi gerado.");
+
+        Status = StatusContrato.ProntoParaEnvio;
+        Historico.Add(new EventoHistorico
+        {
+            DataHora = DateTime.UtcNow,
+            Tipo = TipoEventoHistorico.AvancouParaEnvio,
+            Descricao = "Usuário confirmou o documento e avançou para a etapa de envio."
+        });
+    }
+
+    public void DefinirDestinatarios(string? email, string? whatsapp)
+    {
+        EmailDestinatario = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+        WhatsappDestinatario = string.IsNullOrWhiteSpace(whatsapp) ? null : whatsapp.Trim();
+    }
 }

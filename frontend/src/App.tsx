@@ -8,10 +8,12 @@ import { ConsultaCnpj } from './components/ConsultaCnpj'
 import { DadosContrato } from './components/DadosContrato'
 import { RevisaoContrato } from './components/RevisaoContrato'
 import { VisualizadorContrato } from './components/VisualizadorContrato'
+import { TelaEnvio } from './components/TelaEnvio'
 import { gerarContrato, gerarContratoNovamente, type GerarContratoResultado } from './services/contratoService'
+import { avancarParaEnvio } from './services/envioService'
 import './App.css'
 
-type Etapa = 'formulario' | 'revisao' | 'visualizacao'
+type Etapa = 'formulario' | 'revisao' | 'visualizacao' | 'envio'
 
 function App() {
   const [empresaSelecionada, setEmpresaSelecionada] = useState<Empresa | null>(null)
@@ -72,6 +74,19 @@ function App() {
     aplicarResultado(await gerarContratoNovamente(id))
   }
 
+  async function handleContinuarParaEnvio() {
+    if (!contratoGerado) return
+    const resultado = await avancarParaEnvio(contratoGerado.id)
+    if (resultado.sucesso) {
+      setContratoGerado(resultado.dados)
+      setEtapa('envio')
+    }
+  }
+
+  function handleVoltarParaVisualizacao() {
+    setEtapa('visualizacao')
+  }
+
   function handleNovoContrato() {
     setEmpresaSelecionada(null)
     setDadosContrato(null)
@@ -87,7 +102,9 @@ function App() {
       ? 'dados'
       : etapa === 'revisao'
         ? 'revisao'
-        : 'concluido'
+        : etapa === 'envio'
+          ? 'envio'
+          : 'documento'
 
   return (
     <div className="aplicacao">
@@ -133,9 +150,13 @@ function App() {
           <VisualizadorContrato
             contrato={contratoGerado}
             onVoltar={handleVoltarParaEdicao}
-            onContinuarParaEnvio={() => {}}
+            onContinuarParaEnvio={handleContinuarParaEnvio}
             onNovoContrato={handleNovoContrato}
           />
+        )}
+
+        {etapa === 'envio' && contratoGerado && (
+          <TelaEnvio contrato={contratoGerado} onVoltar={handleVoltarParaVisualizacao} />
         )}
       </div>
     </div>

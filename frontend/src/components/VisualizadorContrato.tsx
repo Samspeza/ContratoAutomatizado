@@ -111,13 +111,7 @@ export function VisualizadorContrato({ contrato, onVoltar, onContinuarParaEnvio,
         <button type="button" className="botao botao--secundario" onClick={onVoltar}>
           Voltar e corrigir
         </button>
-        <button
-          type="button"
-          className="botao botao--primario"
-          onClick={onContinuarParaEnvio}
-          disabled
-          title="Disponível na próxima etapa"
-        >
+        <button type="button" className="botao botao--primario" onClick={onContinuarParaEnvio}>
           Continuar para envio
         </button>
       </div>

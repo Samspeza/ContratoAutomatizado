@@ -289,3 +289,46 @@
   font-size: 0.85rem;
   color: var(--cor-texto-suave);
 }
+.bloco-canal {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.bloco-canal:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.bloco-canal__titulo {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.previa-envio {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.previa-envio p {
+  margin: 0.3rem 0;
+}
+
+.previa-envio__mensagem {
+  white-space: pre-wrap;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.previa-envio__mensagem--whatsapp {
+  max-width: 320px;
+}

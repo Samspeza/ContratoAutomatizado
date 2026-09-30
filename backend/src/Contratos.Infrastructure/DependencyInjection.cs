@@ -6,6 +6,7 @@ using Contratos.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Contratos.Infrastructure.Envio;
 
 namespace Contratos.Infrastructure;
 
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddSingleton<IGeradorDocumentoService, OpenXmlGeradorDocumentoService>();
         services.AddSingleton<IArmazenamentoContratoService, ArmazenamentoContratoLocalService>();
         services.AddSingleton<IPdfConversorService, LibreOfficePdfConversorService>();
+        services.AddSingleton<IMensagemEnvioService, MensagemEnvioProvisoriaService>();
 
         var pastas = new PastasAplicacao(configuration);
         var caminhoBanco = Path.Combine(pastas.Dados, "contratos.db");

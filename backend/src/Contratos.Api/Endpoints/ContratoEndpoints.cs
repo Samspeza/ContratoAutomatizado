@@ -19,6 +19,10 @@ public static class ContratoEndpoints
             ObterArquivoAsync(id, ".pdf", baixar ?? false, repositorio));
         app.MapGet("/api/contratos/{id:int}/docx", (int id, IContratoRepository repositorio) =>
             ObterArquivoAsync(id, ".docx", true, repositorio));
+        app.MapPut("/api/contratos/{id:int}/destinatarios", AtualizarDestinatariosAsync);
+        app.MapPost("/api/contratos/{id:int}/avancar-para-envio", AvancarParaEnvioAsync);
+        app.MapGet("/api/contratos/{id:int}/previa-email", ObterPreviaEmailAsync);
+        app.MapGet("/api/contratos/{id:int}/previa-whatsapp", ObterPreviaWhatsappAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -140,5 +144,72 @@ public static class ContratoEndpoints
 
         var nomeArquivo = baixar ? Path.GetFileName(caminho) : null;
         return Results.File(bytes, tipoConteudo, nomeArquivo, enableRangeProcessing: true);
+    }
+    private static async Task<IResult> AvancarParaEnvioAsync(int id, IContratoRepository repositorio)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            contrato.AvancarParaEnvio();
+            await repositorio.AtualizarAsync(contrato);
+            return Results.Ok(ContratoDto.DeContrato(contrato));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { mensagem = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> AtualizarDestinatariosAsync(
+        int id, AtualizarDestinatariosDto dados, IContratoRepository repositorio)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            DestinatariosValidator.Validar(dados);
+        }
+        catch (DestinatariosInvalidosException ex)
+        {
+            return Results.BadRequest(new { mensagens = ex.Mensagens });
+        }
+
+        contrato.DefinirDestinatarios(dados.EmailDestinatario, dados.WhatsappDestinatario);
+        await repositorio.AtualizarAsync(contrato);
+
+        return Results.Ok(ContratoDto.DeContrato(contrato));
+    }
+
+    private static async Task<IResult> ObterPreviaEmailAsync(int id, IContratoRepository repositorio, IMensagemEnvioService mensagens)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            return Results.Ok(mensagens.MontarPreviaEmail(contrato));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { mensagem = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> ObterPreviaWhatsappAsync(int id, IContratoRepository repositorio, IMensagemEnvioService mensagens)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            return Results.Ok(mensagens.MontarPreviaWhatsapp(contrato));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { mensagem = ex.Message });
+        }
     }
 }
