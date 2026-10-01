@@ -23,7 +23,7 @@ public static class DependencyInjection
         services.AddHttpClient<ICnpjConsultaService, BrasilApiCnpjConsultaService>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
-            client.Timeout = TimeSpan.FromSeconds(10);
+            client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "ContratoAutomatizado/1.0");
         });
