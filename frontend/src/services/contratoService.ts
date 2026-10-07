@@ -1,5 +1,6 @@
 import type { Empresa } from '../types/empresa'
 import type { ResponsavelAssinatura } from '../types/dadosContrato'
+import type { Contrato } from '../types/contrato'
 
 interface GerarContratoPayload {
   empresa: Empresa
@@ -11,8 +12,22 @@ interface GerarContratoPayload {
 }
 
 export type GerarContratoResultado =
-  | { sucesso: true; arquivoDocx: string; arquivoPdf: string; caminhoCompletoPdf: string }
-  | { sucesso: false; mensagem: string }
+  | { sucesso: true; contrato: Contrato }
+  | { sucesso: false; mensagem: string; contratoId?: number }
+
+async function tratarResposta(resposta: Response): Promise<GerarContratoResultado> {
+  if (resposta.ok) {
+    const contrato = (await resposta.json()) as Contrato
+    return { sucesso: true, contrato }
+  }
+
+  const corpoErro = await resposta.json().catch(() => null)
+  return {
+    sucesso: false,
+    mensagem: corpoErro?.mensagem ?? corpoErro?.detail ?? 'Não foi possível gerar o contrato.',
+    contratoId: corpoErro?.contratoId
+  }
+}
 
 export async function gerarContrato(payload: GerarContratoPayload): Promise<GerarContratoResultado> {
   try {
@@ -21,26 +36,17 @@ export async function gerarContrato(payload: GerarContratoPayload): Promise<Gera
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-
-    if (resposta.ok) {
-      const corpo = await resposta.json()
-      return {
-        sucesso: true,
-        arquivoDocx: corpo.arquivoDocx,
-        arquivoPdf: corpo.arquivoPdf,
-        caminhoCompletoPdf: corpo.caminhoCompletoPdf
-      }
-    }
-
-    const corpoErro = await resposta.json().catch(() => null)
-    return {
-      sucesso: false,
-      mensagem: corpoErro?.detail ?? corpoErro?.mensagem ?? 'Não foi possível gerar o contrato.'
-    }
+    return await tratarResposta(resposta)
   } catch {
-    return {
-      sucesso: false,
-      mensagem: 'Não foi possível gerar o contrato. Verifique sua conexão e tente novamente.'
-    }
+    return { sucesso: false, mensagem: 'Não foi possível gerar o contrato. Verifique sua conexão e tente novamente.' }
+  }
+}
+
+export async function gerarContratoNovamente(id: number): Promise<GerarContratoResultado> {
+  try {
+    const resposta = await fetch(`/api/contratos/${id}/gerar`, { method: 'POST' })
+    return await tratarResposta(resposta)
+  } catch {
+    return { sucesso: false, mensagem: 'Não foi possível gerar o contrato. Verifique sua conexão e tente novamente.' }
   }
 }

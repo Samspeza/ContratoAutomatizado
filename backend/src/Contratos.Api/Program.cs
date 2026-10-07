@@ -5,8 +5,10 @@ using Contratos.Api.Middleware;
 using Contratos.Infrastructure;
 using Contratos.Infrastructure.Storage;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using Contratos.Infrastructure.Persistence;
 
 // A raiz da aplicação é a pasta do executável (e não a "pasta atual" de quem o iniciou),
 // para que o wwwroot e o appsettings sejam encontrados mesmo quando aberto por um atalho.
@@ -70,6 +72,12 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+using (var escopoInicializacao = app.Services.CreateScope())
+{
+    var banco = escopoInicializacao.ServiceProvider.GetRequiredService<ContratosDbContext>();
+    banco.Database.Migrate();
+}
 
 app.UseMiddleware<TratamentoGlobalDeErrosMiddleware>();
 
