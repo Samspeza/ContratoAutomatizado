@@ -149,4 +149,31 @@ public sealed class Contrato
         EmailDestinatario = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
         WhatsappDestinatario = string.IsNullOrWhiteSpace(whatsapp) ? null : whatsapp.Trim();
     }
+
+    public void MarcarEmailEnviado()
+    {
+        StatusEmail = StatusCanalEnvio.Enviado;
+        EmailEnviadoEm = DateTime.UtcNow;
+        EmailErroMensagem = null;
+        Historico.Add(new EventoHistorico
+        {
+            DataHora = DateTime.UtcNow,
+            Tipo = TipoEventoHistorico.EmailEnviado,
+            Descricao = $"E-mail enviado para {EmailDestinatario}."
+        });
+        RecalcularStatusDeEnvio();
+    }
+
+    public void MarcarErroEnvioEmail(string motivo)
+    {
+        StatusEmail = StatusCanalEnvio.Erro;
+        EmailErroMensagem = motivo;
+        Historico.Add(new EventoHistorico
+        {
+            DataHora = DateTime.UtcNow,
+            Tipo = TipoEventoHistorico.FalhaEnvioEmail,
+            Descricao = motivo
+        });
+        RecalcularStatusDeEnvio();
+    }
 }

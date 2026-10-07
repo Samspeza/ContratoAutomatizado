@@ -1,22 +1,24 @@
 import { useState } from 'react'
 import type { Contrato } from '../types/contrato'
 import type { PreviaEmail, PreviaWhatsapp } from '../types/envio'
-import { atualizarDestinatarios, obterPreviaEmail, obterPreviaWhatsapp } from '../services/envioService'
+import { atualizarDestinatarios, enviarEmail, obterPreviaEmail, obterPreviaWhatsapp } from '../services/envioService'
 
 interface TelaEnvioProps {
   contrato: Contrato
   onVoltar: () => void
+  onContratoAtualizado: (contrato: Contrato) => void
 }
 
-export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
-  const [emailDestinatario, setEmailDestinatario] = useState('')
-  const [whatsappDestinatario, setWhatsappDestinatario] = useState('')
+export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvioProps) {
+  const [emailDestinatario, setEmailDestinatario] = useState(contrato.emailDestinatario ?? '')
+  const [whatsappDestinatario, setWhatsappDestinatario] = useState(contrato.whatsappDestinatario ?? '')
   const [erroEmail, setErroEmail] = useState('')
   const [erroWhatsapp, setErroWhatsapp] = useState('')
   const [previaEmail, setPreviaEmail] = useState<PreviaEmail | null>(null)
   const [previaWhatsapp, setPreviaWhatsapp] = useState<PreviaWhatsapp | null>(null)
   const [carregandoPreviaEmail, setCarregandoPreviaEmail] = useState(false)
   const [carregandoPreviaWhatsapp, setCarregandoPreviaWhatsapp] = useState(false)
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
 
   async function handlePreviaEmail() {
     setErroEmail('')
@@ -29,6 +31,7 @@ export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
       setCarregandoPreviaEmail(false)
       return
     }
+    onContratoAtualizado(salvo.dados)
 
     const previa = await obterPreviaEmail(contrato.id)
     if (previa.sucesso) {
@@ -37,6 +40,20 @@ export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
       setErroEmail(previa.mensagem)
     }
     setCarregandoPreviaEmail(false)
+  }
+
+  async function handleConfirmarEnvioEmail() {
+    setEnviandoEmail(true)
+    setErroEmail('')
+
+    const resultado = await enviarEmail(contrato.id)
+    if (resultado.sucesso) {
+      onContratoAtualizado(resultado.dados)
+      setPreviaEmail(null)
+    } else {
+      setErroEmail(resultado.mensagem)
+    }
+    setEnviandoEmail(false)
   }
 
   async function handlePreviaWhatsapp() {
@@ -50,6 +67,7 @@ export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
       setCarregandoPreviaWhatsapp(false)
       return
     }
+    onContratoAtualizado(salvo.dados)
 
     const previa = await obterPreviaWhatsapp(contrato.id)
     if (previa.sucesso) {
@@ -67,6 +85,15 @@ export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
 
       <div className="bloco-canal">
         <h3 className="bloco-canal__titulo">E-mail</h3>
+
+        {contrato.statusEmail === 'Enviado' && (
+          <p className="mensagem mensagem--sucesso">
+            ✓ Enviado em {contrato.emailEnviadoEm && new Date(contrato.emailEnviadoEm).toLocaleString('pt-BR')}
+          </p>
+        )}
+        {contrato.statusEmail === 'Erro' && (
+          <p className="mensagem mensagem--erro">✕ {contrato.emailErroMensagem}</p>
+        )}
 
         <div className="campo">
           <label htmlFor="email-destinatario">Destinatário</label>
@@ -93,9 +120,11 @@ export function TelaEnvio({ contrato, onVoltar }: TelaEnvioProps) {
             <p className="previa-envio__mensagem">{previaEmail.mensagem}</p>
             <p><strong>Anexo:</strong> 📎 {previaEmail.nomeArquivoAnexo}</p>
             <div className="acoes">
-              <button type="button" className="botao botao--secundario" onClick={() => setPreviaEmail(null)}>Fechar prévia</button>
-              <button type="button" className="botao botao--primario" disabled title="Disponível na Etapa 6 (integração com o Outlook)">
-                Confirmar e enviar
+              <button type="button" className="botao botao--secundario" onClick={() => setPreviaEmail(null)} disabled={enviandoEmail}>
+                Fechar prévia
+              </button>
+              <button type="button" className="botao botao--primario" onClick={handleConfirmarEnvioEmail} disabled={enviandoEmail}>
+                {enviandoEmail ? 'Enviando...' : 'Confirmar e enviar'}
               </button>
             </div>
           </div>

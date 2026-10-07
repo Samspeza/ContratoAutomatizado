@@ -39,3 +39,8 @@ export async function obterPreviaWhatsapp(id: number) {
   const resposta = await fetch(`/api/contratos/${id}/previa-whatsapp`)
   return tratarResposta<PreviaWhatsapp>(resposta)
 }
+
+export async function enviarEmail(id: number) {
+  const resposta = await fetch(`/api/contratos/${id}/enviar-email`, { method: 'POST' })
+  return tratarResposta<Contrato>(resposta)
+}

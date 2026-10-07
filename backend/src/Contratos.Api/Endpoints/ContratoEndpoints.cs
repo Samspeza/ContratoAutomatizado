@@ -23,6 +23,7 @@ public static class ContratoEndpoints
         app.MapPost("/api/contratos/{id:int}/avancar-para-envio", AvancarParaEnvioAsync);
         app.MapGet("/api/contratos/{id:int}/previa-email", ObterPreviaEmailAsync);
         app.MapGet("/api/contratos/{id:int}/previa-whatsapp", ObterPreviaWhatsappAsync);
+        app.MapPost("/api/contratos/{id:int}/enviar-email", EnviarEmailAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -210,6 +211,30 @@ public static class ContratoEndpoints
         catch (InvalidOperationException ex)
         {
             return Results.BadRequest(new { mensagem = ex.Message });
+        }
+    }
+    private static async Task<IResult> EnviarEmailAsync(
+    int id, IContratoRepository repositorio, IEmailEnvioService emailEnvio, ILogger<Program> logger)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        if (string.IsNullOrWhiteSpace(contrato.EmailDestinatario))
+            return Results.BadRequest(new { mensagem = "Este contrato não possui um destinatário de e-mail configurado." });
+
+        try
+        {
+            await emailEnvio.EnviarAsync(contrato);
+            contrato.MarcarEmailEnviado();
+            await repositorio.AtualizarAsync(contrato);
+            return Results.Ok(ContratoDto.DeContrato(contrato));
+        }
+        catch (EnvioEmailFalhouException ex)
+        {
+            contrato.MarcarErroEnvioEmail(ex.Message);
+            await repositorio.AtualizarAsync(contrato);
+            logger.LogError(ex, "Falha ao enviar e-mail do contrato {ContratoId}.", id);
+            return Results.Json(new { mensagem = ex.Message }, statusCode: StatusCodes.Status502BadGateway);
         }
     }
 }

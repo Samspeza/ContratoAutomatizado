@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddSingleton<IArmazenamentoContratoService, ArmazenamentoContratoLocalService>();
         services.AddSingleton<IPdfConversorService, LibreOfficePdfConversorService>();
         services.AddSingleton<IMensagemEnvioService, MensagemEnvioProvisoriaService>();
+        services.AddSingleton<IEmailEnvioService, SmtpEmailEnvioService>();
 
         var pastas = new PastasAplicacao(configuration);
         var caminhoBanco = Path.Combine(pastas.Dados, "contratos.db");

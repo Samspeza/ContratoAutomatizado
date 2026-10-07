@@ -11,4 +11,12 @@ export interface Contrato {
   status: string
   arquivoDisponivel: boolean
   responsaveis: ResponsavelAssinatura[]
+  emailDestinatario: string | null
+  statusEmail: 'Pendente' | 'Enviado' | 'Erro'
+  emailEnviadoEm: string | null
+  emailErroMensagem: string | null
+  whatsappDestinatario: string | null
+  statusWhatsapp: 'Pendente' | 'Enviado' | 'Erro'
+  whatsappEnviadoEm: string | null
+  whatsappErroMensagem: string | null
 }

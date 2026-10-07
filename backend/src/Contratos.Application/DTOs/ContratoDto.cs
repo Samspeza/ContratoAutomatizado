@@ -13,7 +13,15 @@ public sealed record ContratoDto(
     DateOnly DataContrato,
     string Status,
     bool ArquivoDisponivel,
-    IReadOnlyList<ResponsavelAssinaturaDto> Responsaveis)
+    IReadOnlyList<ResponsavelAssinaturaDto> Responsaveis,
+    string? EmailDestinatario,
+    string StatusEmail,
+    DateTime? EmailEnviadoEm,
+    string? EmailErroMensagem,
+    string? WhatsappDestinatario,
+    string StatusWhatsapp,
+    DateTime? WhatsappEnviadoEm,
+    string? WhatsappErroMensagem)
 {
     public static ContratoDto DeContrato(Contrato contrato) => new(
         contrato.Id,
@@ -25,5 +33,13 @@ public sealed record ContratoDto(
         contrato.DataContrato,
         contrato.Status.ToString(),
         !string.IsNullOrWhiteSpace(contrato.CaminhoArquivoPdf) && File.Exists(contrato.CaminhoArquivoPdf),
-        contrato.Responsaveis.Select(r => new ResponsavelAssinaturaDto(r.Nome, r.Cpf ?? string.Empty)).ToList());
+        contrato.Responsaveis.Select(r => new ResponsavelAssinaturaDto(r.Nome, r.Cpf ?? string.Empty)).ToList(),
+        contrato.EmailDestinatario,
+        contrato.StatusEmail.ToString(),
+        contrato.EmailEnviadoEm,
+        contrato.EmailErroMensagem,
+        contrato.WhatsappDestinatario,
+        contrato.StatusWhatsapp.ToString(),
+        contrato.WhatsappEnviadoEm,
+        contrato.WhatsappErroMensagem);
 }

@@ -156,7 +156,11 @@ function App() {
         )}
 
         {etapa === 'envio' && contratoGerado && (
-          <TelaEnvio contrato={contratoGerado} onVoltar={handleVoltarParaVisualizacao} />
+          <TelaEnvio
+            contrato={contratoGerado}
+            onVoltar={handleVoltarParaVisualizacao}
+            onContratoAtualizado={setContratoGerado}
+          />
         )}
       </div>
     </div>
