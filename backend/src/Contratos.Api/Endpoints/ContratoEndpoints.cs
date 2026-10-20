@@ -236,5 +236,9 @@ public static class ContratoEndpoints
             logger.LogError(ex, "Falha ao enviar e-mail do contrato {ContratoId}.", id);
             return Results.Json(new { mensagem = ex.Message }, statusCode: StatusCodes.Status502BadGateway);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { mensagem = ex.Message });
+        }
     }
 }

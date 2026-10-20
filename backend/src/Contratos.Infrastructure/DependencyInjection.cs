@@ -31,7 +31,8 @@ public static class DependencyInjection
         services.AddSingleton<IGeradorDocumentoService, OpenXmlGeradorDocumentoService>();
         services.AddSingleton<IArmazenamentoContratoService, ArmazenamentoContratoLocalService>();
         services.AddSingleton<IPdfConversorService, LibreOfficePdfConversorService>();
-        services.AddSingleton<IMensagemEnvioService, MensagemEnvioProvisoriaService>();
+        services.AddSingleton<IModeloMensagemProvider, ModeloMensagemArquivoProvider>();
+        services.AddSingleton<IMensagemEnvioService, MensagemEnvioService>();
         services.AddSingleton<IEmailEnvioService, SmtpEmailEnvioService>();
 
         var pastas = new PastasAplicacao(configuration);
