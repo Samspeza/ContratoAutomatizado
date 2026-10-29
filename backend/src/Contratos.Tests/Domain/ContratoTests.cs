@@ -121,4 +121,28 @@ public class ContratoTests
 
         Assert.Equal(esperado, contrato.PodeGerarArquivos);
     }
+
+    [Fact]
+    public void Cancelar_DeContratoProntoParaEnvio_DeveFicarCanceladoERegistrarEvento()
+    {
+        var contrato = CriarContratoGerado();
+        contrato.AvancarParaEnvio();
+
+        contrato.Cancelar();
+
+        Assert.Equal(StatusContrato.Cancelado, contrato.Status);
+        Assert.Contains(contrato.Historico, e => e.Tipo == TipoEventoHistorico.ContratoCancelado);
+        Assert.False(contrato.PodeEnviarEmail);
+    }
+
+    [Theory]
+    [InlineData(StatusContrato.Concluido)]
+    [InlineData(StatusContrato.Cancelado)]
+    public void Cancelar_DeContratoConcluidoOuJaCancelado_DeveLancarExcecao(StatusContrato status)
+    {
+        var contrato = CriarContratoGerado();
+        contrato.Status = status;
+
+        Assert.Throws<InvalidOperationException>(() => contrato.Cancelar());
+    }
 }

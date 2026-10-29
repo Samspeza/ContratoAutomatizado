@@ -373,3 +373,166 @@
 .historico__item--erro .historico__data {
   color: inherit;
 }
+
+/* O atributo hidden perde para "display: flex" das classes; este ajuste garante que esconda de verdade. */
+[hidden] {
+  display: none !important;
+}
+
+/* Abas */
+.navegacao {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.navegacao__item {
+  font-family: var(--fonte-base);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.navegacao__item--ativo {
+  color: var(--cor-texto);
+  border-bottom-color: var(--cor-acento);
+}
+
+/* A área de contratos usa uma largura maior por causa da tabela. */
+.aplicacao--larga .cabecalho,
+.aplicacao--larga .navegacao,
+.aplicacao--larga .conteudo {
+  max-width: 960px;
+}
+
+/* Campos de seleção com a mesma aparência dos demais */
+.campo select {
+  font-family: var(--fonte-base);
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.campo select:focus {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
+  border-color: var(--cor-acento);
+}
+
+/* Lista de contratos */
+.filtros {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.filtros .campo {
+  margin-bottom: 0;
+}
+
+.tabela-contratos {
+  width: 100%;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.tabela-contratos th {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--cor-borda);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.tabela-contratos td {
+  padding: 0.7rem 0.6rem;
+  border-bottom: 1px solid var(--cor-borda);
+  vertical-align: middle;
+}
+
+.tabela-contratos tbody tr {
+  cursor: pointer;
+}
+
+.tabela-contratos tbody tr:hover,
+.tabela-contratos tbody tr:focus-visible {
+  background: var(--cor-fundo);
+  outline: none;
+}
+
+.tabela-contratos__empresa strong {
+  display: block;
+}
+
+.tabela-contratos__cnpj {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.tabela-contratos__abrir {
+  text-align: right;
+  font-weight: 600;
+  color: var(--cor-acento);
+  white-space: nowrap;
+}
+
+.paginacao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+/* Selos de status */
+.selo {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--cor-fundo);
+  color: var(--cor-texto-suave);
+}
+
+.selo--sucesso {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.selo--erro {
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.selo--aviso {
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso);
+}
+
+/* Detalhe do contrato */
+.detalhe__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}

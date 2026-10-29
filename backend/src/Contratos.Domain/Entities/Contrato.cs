@@ -41,6 +41,9 @@ public sealed class Contrato
     public bool PodeEnviarEmail =>
         Status is StatusContrato.ProntoParaEnvio or StatusContrato.ErroNoEnvio or StatusContrato.Concluido;
 
+    public bool PodeCancelar =>
+        Status is not (StatusContrato.Concluido or StatusContrato.Cancelado);
+
     public static Contrato CriarRascunho(
         string cnpj,
         string razaoSocial,
@@ -149,6 +152,20 @@ public sealed class Contrato
             DataHora = DateTime.UtcNow,
             Tipo = TipoEventoHistorico.FalhaEnvioEmail,
             Descricao = motivo
+        });
+    }
+
+    public void Cancelar()
+    {
+        if (!PodeCancelar)
+            throw new InvalidOperationException("Este contrato não pode mais ser cancelado.");
+
+        Status = StatusContrato.Cancelado;
+        Historico.Add(new EventoHistorico
+        {
+            DataHora = DateTime.UtcNow,
+            Tipo = TipoEventoHistorico.ContratoCancelado,
+            Descricao = "Contrato cancelado pelo usuário."
         });
     }
 }

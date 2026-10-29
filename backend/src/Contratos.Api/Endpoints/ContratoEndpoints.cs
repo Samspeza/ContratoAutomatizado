@@ -5,6 +5,8 @@ using Contratos.Application.Interfaces;
 using Contratos.Application.Validation;
 using Contratos.Domain.Entities;
 using Contratos.Domain.Exceptions;
+using Contratos.Application.Queries;
+using Contratos.Domain.Enums;
 
 namespace Contratos.Api.Endpoints;
 
@@ -24,6 +26,8 @@ public static class ContratoEndpoints
         app.MapPut("/api/contratos/{id:int}/destinatarios", AtualizarDestinatariosAsync);
         app.MapGet("/api/contratos/{id:int}/previa-email", ObterPreviaEmailAsync);
         app.MapPost("/api/contratos/{id:int}/enviar-email", EnviarEmailAsync);
+        app.MapGet("/api/contratos", ListarAsync);
+        app.MapPost("/api/contratos/{id:int}/cancelar", CancelarAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -266,6 +270,57 @@ public static class ContratoEndpoints
         catch (InvalidOperationException ex)
         {
             return Results.BadRequest(new { mensagem = ex.Message });
+        }
+    }
+    private static async Task<IResult> ListarAsync(
+    string? busca,
+    StatusContrato? status,
+    DateOnly? de,
+    DateOnly? ate,
+    int? pagina,
+    int? tamanho,
+    IContratoRepository repositorio)
+    {
+        var paginaAtual = Math.Max(1, pagina ?? 1);
+        var tamanhoPagina = Math.Clamp(tamanho ?? 20, 1, 100);
+
+        var filtro = new FiltroContratos(
+            busca,
+            status,
+            InicioDoDiaEmUtc(de),
+            InicioDoDiaEmUtc(ate?.AddDays(1)),
+            paginaAtual,
+            tamanhoPagina);
+
+        var resultado = await repositorio.ListarAsync(filtro);
+
+        return Results.Ok(new PaginaContratosDto(
+            resultado.Itens.Select(ContratoResumoDto.DeContrato).ToList(),
+            resultado.Total,
+            paginaAtual,
+            tamanhoPagina));
+    }
+
+    // As datas do filtro vêm como dia do calendário do usuário; o banco guarda UTC.
+    private static DateTime? InicioDoDiaEmUtc(DateOnly? data) =>
+        data.HasValue
+            ? DateTime.SpecifyKind(data.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Local).ToUniversalTime()
+            : null;
+
+    private static async Task<IResult> CancelarAsync(int id, IContratoRepository repositorio)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            contrato.Cancelar();
+            await repositorio.AtualizarAsync(contrato);
+            return Results.Ok(ContratoDto.DeContrato(contrato));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { mensagem = ex.Message });
         }
     }
 }

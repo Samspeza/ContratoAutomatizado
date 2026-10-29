@@ -1,7 +1,7 @@
 import type { Contrato } from '../types/contrato'
 import type { EventoHistorico, PreviaEmail } from '../types/envio'
 
-type ResultadoComMensagem<T> =
+export type ResultadoComMensagem<T> =
   | { sucesso: true; dados: T }
   | { sucesso: false; mensagem: string }
 
@@ -18,7 +18,7 @@ async function tratarResposta<T>(resposta: Response): Promise<ResultadoComMensag
 
 const MENSAGEM_SEM_CONEXAO = 'Não foi possível se comunicar com o sistema. Tente novamente.'
 
-async function chamar<T>(requisicao: () => Promise<Response>): Promise<ResultadoComMensagem<T>> {
+export async function chamar<T>(requisicao: () => Promise<Response>): Promise<ResultadoComMensagem<T>> {
   try {
     return await tratarResposta<T>(await requisicao())
   } catch {

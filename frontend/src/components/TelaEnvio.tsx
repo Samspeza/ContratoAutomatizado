@@ -9,13 +9,14 @@ interface TelaEnvioProps {
   contrato: Contrato
   onVoltar: () => void
   onContratoAtualizado: (contrato: Contrato) => void
+  rotuloVoltar?: string
 }
 
 function formatarDataHora(iso: string) {
   return new Date(iso).toLocaleString('pt-BR')
 }
 
-export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvioProps) {
+export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado, rotuloVoltar = 'Voltar para o documento' }: TelaEnvioProps) {
   const [emailDestinatario, setEmailDestinatario] = useState(contrato.emailDestinatario ?? '')
   const [erroEmail, setErroEmail] = useState('')
   const [previaEmail, setPreviaEmail] = useState<PreviaEmail | null>(null)
@@ -142,9 +143,9 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
       </div>
 
       <div className="acoes">
-        <button type="button" className="botao botao--secundario" onClick={onVoltar}>
-          Voltar para o documento
-        </button>
+       <button type="button" className="botao botao--secundario" onClick={onVoltar}>
+        {rotuloVoltar}
+      </button>
       </div>
 
       <HistoricoContrato contratoId={contrato.id} chaveAtualizacao={chaveHistorico} />

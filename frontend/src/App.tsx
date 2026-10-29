@@ -3,12 +3,14 @@ import type { Empresa } from './types/empresa'
 import type { DadosContrato as DadosContratoType } from './types/dadosContrato'
 import type { Contrato } from './types/contrato'
 import { Cabecalho } from './components/Cabecalho'
+import { Navegacao, type Secao } from './components/Navegacao'
 import { IndicadorEtapas, type EtapaFluxo } from './components/IndicadorEtapas'
 import { ConsultaCnpj } from './components/ConsultaCnpj'
 import { DadosContrato } from './components/DadosContrato'
 import { RevisaoContrato } from './components/RevisaoContrato'
 import { VisualizadorContrato } from './components/VisualizadorContrato'
 import { TelaEnvio } from './components/TelaEnvio'
+import { AreaContratos } from './components/AreaContratos'
 import { gerarContrato, gerarContratoNovamente, type GerarContratoResultado } from './services/contratoService'
 import { avancarParaEnvio } from './services/envioService'
 import './App.css'
@@ -16,6 +18,7 @@ import './App.css'
 type Etapa = 'formulario' | 'revisao' | 'visualizacao' | 'envio'
 
 function App() {
+  const [secao, setSecao] = useState<Secao>('novo')
   const [empresaSelecionada, setEmpresaSelecionada] = useState<Empresa | null>(null)
   const [dadosContrato, setDadosContrato] = useState<DadosContratoType | null>(null)
   const [etapa, setEtapa] = useState<Etapa>('formulario')
@@ -107,10 +110,11 @@ function App() {
           : 'documento'
 
   return (
-    <div className="aplicacao">
+    <div className={secao === 'contratos' ? 'aplicacao aplicacao--larga' : 'aplicacao'}>
       <Cabecalho />
+      <Navegacao secaoAtual={secao} onMudar={setSecao} />
 
-      <div className="conteudo">
+      <div className="conteudo" hidden={secao !== 'novo'}>
         <IndicadorEtapas etapaAtual={etapaIndicador} />
 
         <ConsultaCnpj key={chaveReinicio} onEmpresaEncontrada={handleEmpresaEncontrada} />
@@ -162,6 +166,10 @@ function App() {
             onContratoAtualizado={setContratoGerado}
           />
         )}
+      </div>
+
+      <div className="conteudo" hidden={secao !== 'contratos'}>
+        <AreaContratos ativa={secao === 'contratos'} />
       </div>
     </div>
   )
