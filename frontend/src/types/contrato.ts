@@ -15,8 +15,4 @@ export interface Contrato {
   statusEmail: 'Pendente' | 'Enviado' | 'Erro'
   emailEnviadoEm: string | null
   emailErroMensagem: string | null
-  whatsappDestinatario: string | null
-  statusWhatsapp: 'Pendente' | 'Enviado' | 'Erro'
-  whatsappEnviadoEm: string | null
-  whatsappErroMensagem: string | null
 }

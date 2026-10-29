@@ -11,16 +11,16 @@ public sealed class Contrato
     public string RazaoSocial { get; set; } = string.Empty;
     public string Endereco { get; set; } = string.Empty;
 
-    // Guarda os dados que originaram este contrato, para permitir gerar novamente
-    // sem redigitar nada caso a geração falhe (LibreOffice indisponível, etc.).
-    public string DadosOriginaisJson { get; set; } = string.Empty;
-
     public decimal PercentualHonorarios { get; set; }
     public int QuantidadeParcelas { get; set; }
     public DateOnly DataContrato { get; set; }
 
     public string? CaminhoArquivoDocx { get; set; }
     public string? CaminhoArquivoPdf { get; set; }
+
+    // Guarda os dados que originaram este contrato, para permitir gerar novamente
+    // sem redigitar nada caso a geração falhe (LibreOffice indisponível, etc.).
+    public string DadosOriginaisJson { get; set; } = string.Empty;
 
     public StatusContrato Status { get; set; }
 
@@ -29,16 +29,17 @@ public sealed class Contrato
     public DateTime? EmailEnviadoEm { get; set; }
     public string? EmailErroMensagem { get; set; }
 
-    public string? WhatsappDestinatario { get; set; }
-    public StatusCanalEnvio StatusWhatsapp { get; set; }
-    public DateTime? WhatsappEnviadoEm { get; set; }
-    public string? WhatsappErroMensagem { get; set; }
-
     public DateTime CriadoEm { get; set; }
     public DateTime AtualizadoEm { get; set; }
 
     public List<ContratoResponsavel> Responsaveis { get; set; } = new();
     public List<EventoHistorico> Historico { get; set; } = new();
+
+    public bool PodeGerarArquivos =>
+        Status is StatusContrato.Rascunho or StatusContrato.ErroGeracao;
+
+    public bool PodeEnviarEmail =>
+        Status is StatusContrato.ProntoParaEnvio or StatusContrato.ErroNoEnvio or StatusContrato.Concluido;
 
     public static Contrato CriarRascunho(
         string cnpj,
@@ -61,7 +62,6 @@ public sealed class Contrato
             DataContrato = dataContrato,
             Status = StatusContrato.Rascunho,
             StatusEmail = StatusCanalEnvio.Pendente,
-            StatusWhatsapp = StatusCanalEnvio.Pendente,
             CriadoEm = agora,
             AtualizadoEm = agora
         };
@@ -101,37 +101,12 @@ public sealed class Contrato
         });
     }
 
-    // Recalcula o status geral a partir dos dois canais — nunca é setado diretamente.
-    // Ainda não é chamado em nenhum lugar do sistema; vai passar a ser usado
-    // a partir das etapas de envio (6 em diante).
-    public void RecalcularStatusDeEnvio()
-    {
-        if (Status is StatusContrato.Cancelado or StatusContrato.Rascunho or StatusContrato.ErroGeracao or StatusContrato.Gerado)
-            return;
-
-        var statusRelevantes = new List<StatusCanalEnvio>();
-        if (!string.IsNullOrWhiteSpace(EmailDestinatario)) statusRelevantes.Add(StatusEmail);
-        if (!string.IsNullOrWhiteSpace(WhatsappDestinatario)) statusRelevantes.Add(StatusWhatsapp);
-
-        if (statusRelevantes.Count == 0 || statusRelevantes.All(s => s == StatusCanalEnvio.Pendente))
-        {
-            Status = StatusContrato.ProntoParaEnvio;
-        }
-        else if (statusRelevantes.All(s => s == StatusCanalEnvio.Enviado))
-        {
-            Status = StatusContrato.Concluido;
-        }
-        else if (statusRelevantes.Any(s => s == StatusCanalEnvio.Enviado))
-        {
-            Status = StatusContrato.EnvioParcial;
-        }
-        else
-        {
-            Status = StatusContrato.ErroNoEnvio;
-        }
-    }
+    // Idempotente: se o contrato já está na etapa de envio (ou além), não faz nada.
+    // Assim o usuário pode voltar ao documento e continuar de novo sem erro e sem eventos duplicados.
     public void AvancarParaEnvio()
     {
+        if (PodeEnviarEmail) return;
+
         if (Status != StatusContrato.Gerado)
             throw new InvalidOperationException("Só é possível avançar para o envio um contrato que já foi gerado.");
 
@@ -144,10 +119,9 @@ public sealed class Contrato
         });
     }
 
-    public void DefinirDestinatarios(string? email, string? whatsapp)
+    public void DefinirEmailDestinatario(string? email)
     {
         EmailDestinatario = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
-        WhatsappDestinatario = string.IsNullOrWhiteSpace(whatsapp) ? null : whatsapp.Trim();
     }
 
     public void MarcarEmailEnviado()
@@ -155,25 +129,26 @@ public sealed class Contrato
         StatusEmail = StatusCanalEnvio.Enviado;
         EmailEnviadoEm = DateTime.UtcNow;
         EmailErroMensagem = null;
+        Status = StatusContrato.Concluido;
         Historico.Add(new EventoHistorico
         {
             DataHora = DateTime.UtcNow,
             Tipo = TipoEventoHistorico.EmailEnviado,
             Descricao = $"E-mail enviado para {EmailDestinatario}."
         });
-        RecalcularStatusDeEnvio();
     }
 
+    // Mantém EmailEnviadoEm: se um reenvio falhar, ainda dá para ver quando houve o último envio com sucesso.
     public void MarcarErroEnvioEmail(string motivo)
     {
         StatusEmail = StatusCanalEnvio.Erro;
         EmailErroMensagem = motivo;
+        Status = StatusContrato.ErroNoEnvio;
         Historico.Add(new EventoHistorico
         {
             DataHora = DateTime.UtcNow,
             Tipo = TipoEventoHistorico.FalhaEnvioEmail,
             Descricao = motivo
         });
-        RecalcularStatusDeEnvio();
     }
 }

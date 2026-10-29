@@ -8,7 +8,5 @@ public enum TipoEventoHistorico
     AvancouParaEnvio,
     EmailEnviado,
     FalhaEnvioEmail,
-    WhatsappEnviado,
-    FalhaEnvioWhatsapp,
     ContratoCancelado
 }

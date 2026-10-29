@@ -33,20 +33,4 @@ public sealed class MensagemEnvioService : IMensagemEnvioService
             PlaceholdersMensagem.Substituir(modelo.Corpo, valores),
             Path.GetFileName(contrato.CaminhoArquivoPdf) ?? string.Empty);
     }
-
-    // ATENÇÃO: ainda provisório. A mensagem real de WhatsApp entra na Etapa 9.
-    public PreviaWhatsappDto MontarPreviaWhatsapp(Contrato contrato)
-    {
-        if (string.IsNullOrWhiteSpace(contrato.WhatsappDestinatario))
-            throw new InvalidOperationException("Este contrato não possui um número de WhatsApp configurado.");
-
-        var mensagem =
-            "[Texto provisório — a mensagem definitiva será configurada na Etapa 9.]\n\n" +
-            $"Segue o contrato da empresa {contrato.RazaoSocial} em anexo.";
-
-        return new PreviaWhatsappDto(
-            contrato.WhatsappDestinatario,
-            mensagem,
-            Path.GetFileName(contrato.CaminhoArquivoPdf) ?? string.Empty);
-    }
 }

@@ -1,5 +1,5 @@
 import type { Contrato } from '../types/contrato'
-import type { PreviaEmail, PreviaWhatsapp } from '../types/envio'
+import type { EventoHistorico, PreviaEmail } from '../types/envio'
 
 type ResultadoComMensagem<T> =
   | { sucesso: true; dados: T }
@@ -16,31 +16,42 @@ async function tratarResposta<T>(resposta: Response): Promise<ResultadoComMensag
   return { sucesso: false, mensagem }
 }
 
-export async function avancarParaEnvio(id: number) {
-  const resposta = await fetch(`/api/contratos/${id}/avancar-para-envio`, { method: 'POST' })
-  return tratarResposta<Contrato>(resposta)
+const MENSAGEM_SEM_CONEXAO = 'Não foi possível se comunicar com o sistema. Tente novamente.'
+
+async function chamar<T>(requisicao: () => Promise<Response>): Promise<ResultadoComMensagem<T>> {
+  try {
+    return await tratarResposta<T>(await requisicao())
+  } catch {
+    return { sucesso: false, mensagem: MENSAGEM_SEM_CONEXAO }
+  }
 }
 
-export async function atualizarDestinatarios(id: number, email: string, whatsapp: string) {
-  const resposta = await fetch(`/api/contratos/${id}/destinatarios`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ emailDestinatario: email || null, whatsappDestinatario: whatsapp || null })
-  })
-  return tratarResposta<Contrato>(resposta)
+export function obterContrato(id: number) {
+  return chamar<Contrato>(() => fetch(`/api/contratos/${id}`))
 }
 
-export async function obterPreviaEmail(id: number) {
-  const resposta = await fetch(`/api/contratos/${id}/previa-email`)
-  return tratarResposta<PreviaEmail>(resposta)
+export function avancarParaEnvio(id: number) {
+  return chamar<Contrato>(() => fetch(`/api/contratos/${id}/avancar-para-envio`, { method: 'POST' }))
 }
 
-export async function obterPreviaWhatsapp(id: number) {
-  const resposta = await fetch(`/api/contratos/${id}/previa-whatsapp`)
-  return tratarResposta<PreviaWhatsapp>(resposta)
+export function atualizarDestinatarios(id: number, email: string) {
+  return chamar<Contrato>(() =>
+    fetch(`/api/contratos/${id}/destinatarios`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailDestinatario: email || null })
+    })
+  )
 }
 
-export async function enviarEmail(id: number) {
-  const resposta = await fetch(`/api/contratos/${id}/enviar-email`, { method: 'POST' })
-  return tratarResposta<Contrato>(resposta)
+export function obterPreviaEmail(id: number) {
+  return chamar<PreviaEmail>(() => fetch(`/api/contratos/${id}/previa-email`))
+}
+
+export function enviarEmail(id: number) {
+  return chamar<Contrato>(() => fetch(`/api/contratos/${id}/enviar-email`, { method: 'POST' }))
+}
+
+export function obterHistorico(id: number) {
+  return chamar<EventoHistorico[]>(() => fetch(`/api/contratos/${id}/historico`))
 }

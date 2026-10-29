@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { Contrato } from '../types/contrato'
-import type { PreviaEmail, PreviaWhatsapp } from '../types/envio'
-import { atualizarDestinatarios, enviarEmail, obterPreviaEmail, obterPreviaWhatsapp } from '../services/envioService'
+import type { PreviaEmail } from '../types/envio'
+import { atualizarDestinatarios, enviarEmail, obterContrato, obterPreviaEmail } from '../services/envioService'
+import { rotuloStatus } from '../utils/rotuloStatus'
+import { HistoricoContrato } from './HistoricoContrato'
 
 interface TelaEnvioProps {
   contrato: Contrato
@@ -9,26 +11,27 @@ interface TelaEnvioProps {
   onContratoAtualizado: (contrato: Contrato) => void
 }
 
+function formatarDataHora(iso: string) {
+  return new Date(iso).toLocaleString('pt-BR')
+}
+
 export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvioProps) {
   const [emailDestinatario, setEmailDestinatario] = useState(contrato.emailDestinatario ?? '')
-  const [whatsappDestinatario, setWhatsappDestinatario] = useState(contrato.whatsappDestinatario ?? '')
   const [erroEmail, setErroEmail] = useState('')
-  const [erroWhatsapp, setErroWhatsapp] = useState('')
   const [previaEmail, setPreviaEmail] = useState<PreviaEmail | null>(null)
-  const [previaWhatsapp, setPreviaWhatsapp] = useState<PreviaWhatsapp | null>(null)
-  const [carregandoPreviaEmail, setCarregandoPreviaEmail] = useState(false)
-  const [carregandoPreviaWhatsapp, setCarregandoPreviaWhatsapp] = useState(false)
-  const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [carregandoPrevia, setCarregandoPrevia] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [chaveHistorico, setChaveHistorico] = useState(0)
 
   async function handlePreviaEmail() {
     setErroEmail('')
     setPreviaEmail(null)
-    setCarregandoPreviaEmail(true)
+    setCarregandoPrevia(true)
 
-    const salvo = await atualizarDestinatarios(contrato.id, emailDestinatario, whatsappDestinatario)
+    const salvo = await atualizarDestinatarios(contrato.id, emailDestinatario)
     if (!salvo.sucesso) {
       setErroEmail(salvo.mensagem)
-      setCarregandoPreviaEmail(false)
+      setCarregandoPrevia(false)
       return
     }
     onContratoAtualizado(salvo.dados)
@@ -39,11 +42,11 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
     } else {
       setErroEmail(previa.mensagem)
     }
-    setCarregandoPreviaEmail(false)
+    setCarregandoPrevia(false)
   }
 
-  async function handleConfirmarEnvioEmail() {
-    setEnviandoEmail(true)
+  async function handleConfirmarEnvio() {
+    setEnviando(true)
     setErroEmail('')
 
     const resultado = await enviarEmail(contrato.id)
@@ -52,47 +55,49 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
       setPreviaEmail(null)
     } else {
       setErroEmail(resultado.mensagem)
+      // O backend registrou a falha; recarrega o contrato para mostrar o estado real.
+      const atualizado = await obterContrato(contrato.id)
+      if (atualizado.sucesso) onContratoAtualizado(atualizado.dados)
     }
-    setEnviandoEmail(false)
-  }
 
-  async function handlePreviaWhatsapp() {
-    setErroWhatsapp('')
-    setPreviaWhatsapp(null)
-    setCarregandoPreviaWhatsapp(true)
-
-    const salvo = await atualizarDestinatarios(contrato.id, emailDestinatario, whatsappDestinatario)
-    if (!salvo.sucesso) {
-      setErroWhatsapp(salvo.mensagem)
-      setCarregandoPreviaWhatsapp(false)
-      return
-    }
-    onContratoAtualizado(salvo.dados)
-
-    const previa = await obterPreviaWhatsapp(contrato.id)
-    if (previa.sucesso) {
-      setPreviaWhatsapp(previa.dados)
-    } else {
-      setErroWhatsapp(previa.mensagem)
-    }
-    setCarregandoPreviaWhatsapp(false)
+    setChaveHistorico((chave) => chave + 1)
+    setEnviando(false)
   }
 
   return (
     <section className="cartao">
       <h2 className="cartao__titulo">Envio do contrato</h2>
       <p className="cartao__descricao">Contrato: {contrato.razaoSocial} — {contrato.cnpj}</p>
+      <p className="situacao">Situação: <strong>{rotuloStatus(contrato.status)}</strong></p>
 
       <div className="bloco-canal">
         <h3 className="bloco-canal__titulo">E-mail</h3>
 
         {contrato.statusEmail === 'Enviado' && (
           <p className="mensagem mensagem--sucesso">
-            ✓ Enviado em {contrato.emailEnviadoEm && new Date(contrato.emailEnviadoEm).toLocaleString('pt-BR')}
+            ✓ Enviado para {contrato.emailDestinatario}
+            {contrato.emailEnviadoEm && ` em ${formatarDataHora(contrato.emailEnviadoEm)}`}
           </p>
         )}
+
         {contrato.statusEmail === 'Erro' && (
-          <p className="mensagem mensagem--erro">✕ {contrato.emailErroMensagem}</p>
+          <div className="mensagem mensagem--erro">
+            <p style={{ margin: 0 }}>✕ {contrato.emailErroMensagem}</p>
+            {contrato.emailEnviadoEm && (
+              <p style={{ margin: '0.4rem 0 0' }}>
+                Último envio bem-sucedido em {formatarDataHora(contrato.emailEnviadoEm)}.
+              </p>
+            )}
+            <button
+              type="button"
+              className="botao botao--secundario"
+              style={{ marginTop: '0.6rem' }}
+              onClick={handlePreviaEmail}
+              disabled={!emailDestinatario || carregandoPrevia}
+            >
+              Tentar novamente
+            </button>
+          </div>
         )}
 
         <div className="campo">
@@ -108,8 +113,13 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
 
         {erroEmail && <p className="mensagem mensagem--erro" role="alert">{erroEmail}</p>}
 
-        <button type="button" className="botao botao--secundario" onClick={handlePreviaEmail} disabled={!emailDestinatario || carregandoPreviaEmail}>
-          {carregandoPreviaEmail ? 'Carregando...' : 'Pré-visualizar e-mail'}
+        <button
+          type="button"
+          className="botao botao--secundario"
+          onClick={handlePreviaEmail}
+          disabled={!emailDestinatario || carregandoPrevia}
+        >
+          {carregandoPrevia ? 'Carregando...' : 'Pré-visualizar e-mail'}
         </button>
 
         {previaEmail && (
@@ -120,46 +130,11 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
             <p className="previa-envio__mensagem">{previaEmail.mensagem}</p>
             <p><strong>Anexo:</strong> 📎 {previaEmail.nomeArquivoAnexo}</p>
             <div className="acoes">
-              <button type="button" className="botao botao--secundario" onClick={() => setPreviaEmail(null)} disabled={enviandoEmail}>
+              <button type="button" className="botao botao--secundario" onClick={() => setPreviaEmail(null)} disabled={enviando}>
                 Fechar prévia
               </button>
-              <button type="button" className="botao botao--primario" onClick={handleConfirmarEnvioEmail} disabled={enviandoEmail}>
-                {enviandoEmail ? 'Enviando...' : 'Confirmar e enviar'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="bloco-canal">
-        <h3 className="bloco-canal__titulo">WhatsApp</h3>
-
-        <div className="campo">
-          <label htmlFor="whatsapp-destinatario">Número</label>
-          <input
-            id="whatsapp-destinatario"
-            type="text"
-            value={whatsappDestinatario}
-            onChange={(e) => setWhatsappDestinatario(e.target.value)}
-            placeholder="+55 17 99999-9999"
-          />
-        </div>
-
-        {erroWhatsapp && <p className="mensagem mensagem--erro" role="alert">{erroWhatsapp}</p>}
-
-        <button type="button" className="botao botao--secundario" onClick={handlePreviaWhatsapp} disabled={!whatsappDestinatario || carregandoPreviaWhatsapp}>
-          {carregandoPreviaWhatsapp ? 'Carregando...' : 'Pré-visualizar WhatsApp'}
-        </button>
-
-        {previaWhatsapp && (
-          <div className="previa-envio">
-            <p><strong>Para:</strong> {previaWhatsapp.numeroDestino}</p>
-            <p className="previa-envio__mensagem previa-envio__mensagem--whatsapp">{previaWhatsapp.mensagem}</p>
-            <p><strong>Anexo:</strong> 📎 {previaWhatsapp.nomeArquivoAnexo}</p>
-            <div className="acoes">
-              <button type="button" className="botao botao--secundario" onClick={() => setPreviaWhatsapp(null)}>Fechar prévia</button>
-              <button type="button" className="botao botao--primario" disabled title="Disponível na Etapa 8 (integração com o WhatsApp)">
-                Confirmar e enviar
+              <button type="button" className="botao botao--primario" onClick={handleConfirmarEnvio} disabled={enviando}>
+                {enviando ? 'Enviando...' : contrato.statusEmail === 'Enviado' ? 'Confirmar e reenviar' : 'Confirmar e enviar'}
               </button>
             </div>
           </div>
@@ -171,6 +146,8 @@ export function TelaEnvio({ contrato, onVoltar, onContratoAtualizado }: TelaEnvi
           Voltar para o documento
         </button>
       </div>
+
+      <HistoricoContrato contratoId={contrato.id} chaveAtualizacao={chaveHistorico} />
     </section>
   )
 }

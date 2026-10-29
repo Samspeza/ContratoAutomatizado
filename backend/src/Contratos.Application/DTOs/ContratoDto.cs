@@ -1,3 +1,4 @@
+
 using Contratos.Application.Formatting;
 using Contratos.Domain.Entities;
 
@@ -17,11 +18,7 @@ public sealed record ContratoDto(
     string? EmailDestinatario,
     string StatusEmail,
     DateTime? EmailEnviadoEm,
-    string? EmailErroMensagem,
-    string? WhatsappDestinatario,
-    string StatusWhatsapp,
-    DateTime? WhatsappEnviadoEm,
-    string? WhatsappErroMensagem)
+    string? EmailErroMensagem)
 {
     public static ContratoDto DeContrato(Contrato contrato) => new(
         contrato.Id,
@@ -32,14 +29,13 @@ public sealed record ContratoDto(
         contrato.QuantidadeParcelas,
         contrato.DataContrato,
         contrato.Status.ToString(),
-        !string.IsNullOrWhiteSpace(contrato.CaminhoArquivoPdf) && File.Exists(contrato.CaminhoArquivoPdf),
-        contrato.Responsaveis.Select(r => new ResponsavelAssinaturaDto(r.Nome, r.Cpf ?? string.Empty)).ToList(),
+        !string.IsNullOrWhiteSpace(contrato.CaminhoArquivoPdf)
+            && File.Exists(contrato.CaminhoArquivoPdf),
+        contrato.Responsaveis
+            .Select(r => new ResponsavelAssinaturaDto(r.Nome, r.Cpf ?? string.Empty))
+            .ToList(),
         contrato.EmailDestinatario,
         contrato.StatusEmail.ToString(),
         contrato.EmailEnviadoEm,
-        contrato.EmailErroMensagem,
-        contrato.WhatsappDestinatario,
-        contrato.StatusWhatsapp.ToString(),
-        contrato.WhatsappEnviadoEm,
-        contrato.WhatsappErroMensagem);
+        contrato.EmailErroMensagem);
 }
