@@ -4,6 +4,7 @@ using Contratos.Application.Interfaces;
 using Contratos.Application.Queries;
 using Contratos.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Contratos.Domain.Enums;
 
 namespace Contratos.Infrastructure.Persistence;
 
@@ -75,6 +76,27 @@ public sealed class ContratoRepository : IContratoRepository
             .ToList();
 
         return new PaginaDeContratos(itens, candidatos.Count);
+    }
+
+    public async Task<IReadOnlyList<Contrato>> ListarParaFluxoAsync(DateTime concluidosDesdeUtc)
+    {
+        // Tudo que ainda exige ação aparece sempre, por mais antigo que seja.
+        var emAberto = await _contexto.Contratos
+            .AsNoTracking()
+            .Where(c => c.Status != StatusContrato.Concluido && c.Status != StatusContrato.Cancelado)
+            .ToListAsync();
+
+        // Os concluídos entram só dentro do período escolhido, para a coluna não crescer para sempre.
+        var concluidos = await _contexto.Contratos
+            .AsNoTracking()
+            .Where(c => c.Status == StatusContrato.Concluido && c.EmailEnviadoEm >= concluidosDesdeUtc)
+            .ToListAsync();
+
+        return emAberto
+            .Concat(concluidos)
+            .OrderByDescending(c => c.AtualizadoEm)
+            .ThenByDescending(c => c.Id)
+            .ToList();
     }
 
     private static string Normalizar(string texto)

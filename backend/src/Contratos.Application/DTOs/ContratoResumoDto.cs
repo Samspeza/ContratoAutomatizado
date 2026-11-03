@@ -10,7 +10,9 @@ public sealed record ContratoResumoDto(
     DateTime CriadoEm,
     DateOnly DataContrato,
     string Status,
-    string StatusEmail)
+    string StatusEmail,
+    DateTime AtualizadoEm,
+    DateTime? EmailEnviadoEm)
 {
     public static ContratoResumoDto DeContrato(Contrato contrato) => new(
         contrato.Id,
@@ -19,5 +21,7 @@ public sealed record ContratoResumoDto(
         contrato.CriadoEm,
         contrato.DataContrato,
         contrato.Status.ToString(),
-        contrato.StatusEmail.ToString());
+        contrato.StatusEmail.ToString(),
+        contrato.AtualizadoEm,
+        contrato.EmailEnviadoEm);
 }

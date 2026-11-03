@@ -28,6 +28,7 @@ public static class ContratoEndpoints
         app.MapPost("/api/contratos/{id:int}/enviar-email", EnviarEmailAsync);
         app.MapGet("/api/contratos", ListarAsync);
         app.MapPost("/api/contratos/{id:int}/cancelar", CancelarAsync);
+        app.MapGet("/api/contratos/fluxo", ObterFluxoAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -322,5 +323,12 @@ public static class ContratoEndpoints
         {
             return Results.Conflict(new { mensagem = ex.Message });
         }
+    }
+    private static async Task<IResult> ObterFluxoAsync(int? diasConcluidos, IContratoRepository repositorio)
+    {
+        var dias = Math.Clamp(diasConcluidos ?? 7, 1, 365);
+        var contratos = await repositorio.ListarParaFluxoAsync(DateTime.UtcNow.AddDays(-dias));
+
+        return Results.Ok(contratos.Select(ContratoResumoDto.DeContrato).ToList());
     }
 }

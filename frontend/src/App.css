@@ -536,3 +536,128 @@
   align-items: flex-start;
   gap: 1rem;
 }
+
+/* Quadro de fluxo */
+.fluxo__barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.fluxo__barra .campo {
+  margin-bottom: 0;
+}
+
+.fluxo__atualizar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quadro {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.quadro__coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 160px;
+  padding: 0.75rem;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-top: 3px solid var(--cor-borda);
+  border-radius: 6px;
+}
+
+.quadro__coluna--neutro { border-top-color: var(--cor-primaria); }
+.quadro__coluna--aviso { border-top-color: var(--cor-aviso); }
+.quadro__coluna--erro { border-top-color: var(--cor-erro); }
+.quadro__coluna--sucesso { border-top-color: var(--cor-sucesso); }
+
+.quadro__cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.quadro__titulo {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.quadro__total {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.quadro__descricao {
+  margin: -0.3rem 0 0.2rem;
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.quadro__vazio {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.cartao-fluxo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  font-family: var(--fonte-base);
+  text-align: left;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cartao-fluxo:hover {
+  border-color: var(--cor-texto-suave);
+}
+
+.cartao-fluxo:focus-visible {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
+}
+
+.cartao-fluxo strong {
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.cartao-fluxo .selo {
+  align-self: flex-start;
+}
+
+.cartao-fluxo__cnpj,
+.cartao-fluxo__tempo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.cartao-fluxo__passo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cor-acento);
+}
+
+.cartao-fluxo__tempo--alerta {
+  font-weight: 600;
+  color: var(--cor-aviso);
+}

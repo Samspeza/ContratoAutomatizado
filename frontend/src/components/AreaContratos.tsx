@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Contrato } from '../types/contrato'
 import { avancarParaEnvio } from '../services/envioService'
 import { ListaContratos } from './ListaContratos'
@@ -12,13 +12,28 @@ type Visao =
   | { tipo: 'documento'; contrato: Contrato }
   | { tipo: 'envio'; contrato: Contrato }
 
-interface AreaContratosProps {
-  ativa: boolean
+// Pedido vindo de outra aba (o quadro de fluxo) para abrir o detalhe de um contrato.
+// "chave" muda a cada pedido, para que clicar duas vezes no mesmo contrato também funcione.
+export interface PedidoAbertura {
+  id: number
+  chave: number
 }
 
-export function AreaContratos({ ativa }: AreaContratosProps) {
+interface AreaContratosProps {
+  ativa: boolean
+  pedidoAbertura: PedidoAbertura | null
+}
+
+export function AreaContratos({ ativa, pedidoAbertura }: AreaContratosProps) {
   const [visao, setVisao] = useState<Visao>({ tipo: 'lista' })
   const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    if (pedidoAbertura) {
+      setErro('')
+      setVisao({ tipo: 'detalhe', id: pedidoAbertura.id })
+    }
+  }, [pedidoAbertura])
 
   async function irParaEnvio(contrato: Contrato) {
     setErro('')
@@ -46,7 +61,7 @@ export function AreaContratos({ ativa }: AreaContratosProps) {
 
       {visao.tipo === 'detalhe' && (
         <DetalheContrato
-          key={visao.id}
+          key={`${visao.id}-${pedidoAbertura?.chave ?? 0}`}
           id={visao.id}
           onVoltar={() => setVisao({ tipo: 'lista' })}
           onVerDocumento={(contrato) => setVisao({ tipo: 'documento', contrato })}

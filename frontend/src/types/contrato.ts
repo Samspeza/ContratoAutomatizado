@@ -29,6 +29,8 @@ export interface ContratoResumo {
   dataContrato: string
   status: string
   statusEmail: string
+  atualizadoEm: string
+  emailEnviadoEm: string | null
 }
 
 export interface PaginaContratos {
