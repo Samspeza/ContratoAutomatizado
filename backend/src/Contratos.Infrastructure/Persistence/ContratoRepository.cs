@@ -78,6 +78,39 @@ public sealed class ContratoRepository : IContratoRepository
         return new PaginaDeContratos(itens, candidatos.Count);
     }
 
+    public async Task<ResumoDeContratos> ObterResumoAsync(DateTime inicioDoDiaUtc, DateTime paradosAteUtc, int maximoPendencias)
+    {
+        var contratos = _contexto.Contratos.AsNoTracking();
+
+        var criadosHoje = await contratos.CountAsync(c => c.CriadoEm >= inicioDoDiaUtc);
+        var enviadosHoje = await contratos.CountAsync(c => c.EmailEnviadoEm >= inicioDoDiaUtc);
+
+        var aguardandoEnvio = await contratos.CountAsync(c =>
+            c.Status == StatusContrato.Gerado || c.Status == StatusContrato.ProntoParaEnvio);
+
+        var comErro = await contratos.CountAsync(c =>
+            c.Status == StatusContrato.ErroGeracao || c.Status == StatusContrato.ErroNoEnvio);
+
+        // Pendência = erro (sempre) ou contrato em aberto sem atividade desde "paradosAteUtc".
+        var pendencias = contratos.Where(c =>
+            c.Status == StatusContrato.ErroGeracao
+            || c.Status == StatusContrato.ErroNoEnvio
+            || ((c.Status == StatusContrato.Rascunho
+                || c.Status == StatusContrato.Gerado
+                || c.Status == StatusContrato.ProntoParaEnvio)
+                && c.AtualizadoEm <= paradosAteUtc));
+
+        var totalPendencias = await pendencias.CountAsync();
+
+        var listaPendencias = await pendencias
+            .OrderBy(c => c.AtualizadoEm)
+            .ThenBy(c => c.Id)
+            .Take(maximoPendencias)
+            .ToListAsync();
+
+        return new ResumoDeContratos(criadosHoje, enviadosHoje, aguardandoEnvio, comErro, totalPendencias, listaPendencias);
+    }
+
     public async Task<IReadOnlyList<Contrato>> ListarParaFluxoAsync(DateTime concluidosDesdeUtc)
     {
         // Tudo que ainda exige ação aparece sempre, por mais antigo que seja.

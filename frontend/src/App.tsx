@@ -14,6 +14,7 @@ import { AreaContratos, type PedidoAbertura } from './components/AreaContratos'
 import { QuadroFluxo } from './components/QuadroFluxo'
 import { gerarContrato, gerarContratoNovamente, type GerarContratoResultado } from './services/contratoService'
 import { avancarParaEnvio } from './services/envioService'
+import { PainelResumo } from './components/PainelResumo'
 import './App.css'
 
 type Etapa = 'formulario' | 'revisao' | 'visualizacao' | 'envio'
@@ -181,6 +182,9 @@ function App() {
 
       <div className="conteudo" hidden={secao !== 'fluxo'}>
         <QuadroFluxo ativa={secao === 'fluxo'} onAbrir={handleAbrirContratoDoFluxo} />
+      </div>
+            <div className="conteudo" hidden={secao !== 'resumo'}>
+        <PainelResumo ativa={secao === 'resumo'} onAbrir={handleAbrirContratoDoFluxo} />
       </div>
     </div>
   )

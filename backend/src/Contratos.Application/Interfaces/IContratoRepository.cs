@@ -10,4 +10,5 @@ public interface IContratoRepository
     Task AtualizarAsync(Contrato contrato);
     Task<PaginaDeContratos> ListarAsync(FiltroContratos filtro);
     Task<IReadOnlyList<Contrato>> ListarParaFluxoAsync(DateTime concluidosDesdeUtc);
+    Task<ResumoDeContratos> ObterResumoAsync(DateTime inicioDoDiaUtc, DateTime paradosAteUtc, int maximoPendencias);
 }

@@ -29,6 +29,7 @@ public static class ContratoEndpoints
         app.MapGet("/api/contratos", ListarAsync);
         app.MapPost("/api/contratos/{id:int}/cancelar", CancelarAsync);
         app.MapGet("/api/contratos/fluxo", ObterFluxoAsync);
+        app.MapGet("/api/contratos/resumo", ObterPainelAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -330,5 +331,27 @@ public static class ContratoEndpoints
         var contratos = await repositorio.ListarParaFluxoAsync(DateTime.UtcNow.AddDays(-dias));
 
         return Results.Ok(contratos.Select(ContratoResumoDto.DeContrato).ToList());
+    }
+    private static async Task<IResult> ObterPainelAsync(IContratoRepository repositorio, IConfiguration configuracao)
+    {
+        const int MaximoPendenciasExibidas = 8;
+
+        var diasParado = Math.Clamp(configuracao.GetValue<int?>("Acompanhamento:DiasParado") ?? 3, 1, 60);
+
+        // "Hoje" é o dia do calendário do computador do usuário (o sistema roda localmente);
+        // o banco guarda tudo em UTC.
+        var inicioDoDiaUtc = DateTime.Today.ToUniversalTime();
+        var paradosAteUtc = DateTime.UtcNow.AddDays(-diasParado);
+
+        var resumo = await repositorio.ObterResumoAsync(inicioDoDiaUtc, paradosAteUtc, MaximoPendenciasExibidas);
+
+        return Results.Ok(new ResumoContratosDto(
+            resumo.CriadosHoje,
+            resumo.EnviadosHoje,
+            resumo.AguardandoEnvio,
+            resumo.ComErro,
+            diasParado,
+            resumo.TotalPendencias,
+            resumo.Pendencias.Select(ContratoResumoDto.DeContrato).ToList()));
     }
 }

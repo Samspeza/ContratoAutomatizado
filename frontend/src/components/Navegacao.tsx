@@ -1,4 +1,4 @@
-export type Secao = 'novo' | 'contratos' | 'fluxo'
+export type Secao = 'novo' | 'contratos' | 'fluxo' | 'resumo'
 
 interface NavegacaoProps {
   secaoAtual: Secao
@@ -20,6 +20,9 @@ export function Navegacao({ secaoAtual, onMudar }: NavegacaoProps) {
       </button>
       <button type="button" className={classe('fluxo')} onClick={() => onMudar('fluxo')}>
         Fluxo
+      </button>
+      <button type="button" className={classe('resumo')} onClick={() => onMudar('resumo')}>
+        Resumo
       </button>
     </nav>
   )

@@ -661,3 +661,88 @@
   font-weight: 600;
   color: var(--cor-aviso);
 }
+/* Resumo */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 6px;
+}
+
+.indicador__valor {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.indicador__rotulo {
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.indicador--aviso {
+  border-color: var(--cor-aviso);
+}
+
+.indicador--aviso .indicador__valor {
+  color: var(--cor-aviso);
+}
+
+.indicador--erro {
+  border-color: var(--cor-erro);
+}
+
+.indicador--erro .indicador__valor {
+  color: var(--cor-erro);
+}
+
+.pendencias {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pendencia {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) auto minmax(0, 1.2fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font-family: var(--fonte-base);
+  text-align: left;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pendencia:hover {
+  border-color: var(--cor-texto-suave);
+}
+
+.pendencia:focus-visible {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
+}
+
+.pendencia__empresa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.88rem;
+}
