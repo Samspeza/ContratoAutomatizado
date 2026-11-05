@@ -12,7 +12,7 @@ public sealed class ModeloMensagemArquivoProvider : IModeloMensagemProvider
     private const string PrefixoAssunto = "Assunto:";
 
     // Texto fornecido pelo usuário, gravado só na primeira execução.
-    // Depois disso, o que vale é o arquivo em Configuracoes (editável).
+    // Depois disso, o que vale é o arquivo em Configuracoes (editável pela tela de Configurações).
     private const string ConteudoPadrao = """
         Assunto: Carta de Contratação, Portaria CAT 28/2020
 
@@ -41,6 +41,32 @@ public sealed class ModeloMensagemArquivoProvider : IModeloMensagemProvider
     {
         GarantirArquivoPadrao();
         return Interpretar(File.ReadAllText(CaminhoArquivo, Encoding.UTF8));
+    }
+
+    public ModeloMensagem ObterModeloPadraoEmail() => Interpretar(ConteudoPadrao);
+
+    public void SalvarModeloEmail(ModeloMensagem modelo)
+    {
+        var assunto = modelo.Assunto.Trim();
+        var corpo = modelo.Corpo.Trim();
+
+        if (assunto.Length == 0 || corpo.Length == 0)
+            throw new InvalidOperationException("A mensagem precisa ter assunto e corpo preenchidos.");
+
+        if (assunto.Contains('\n') || assunto.Contains('\r'))
+            throw new InvalidOperationException("O assunto deve ter uma linha só.");
+
+        var desconhecidos = PlaceholdersMensagem.NomesDesconhecidos(assunto + "\n" + corpo);
+        if (desconhecidos.Count > 0)
+        {
+            var lista = string.Join(", ", desconhecidos.Select(nome => "{{" + nome + "}}"));
+            throw new InvalidOperationException(
+                $"A mensagem usa campos que não existem: {lista}. Use somente os campos disponíveis.");
+        }
+
+        Directory.CreateDirectory(_pastaConfiguracoes);
+        var conteudo = $"{PrefixoAssunto} {assunto}\n\n{corpo}\n";
+        File.WriteAllText(CaminhoArquivo, conteudo, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 
     private void GarantirArquivoPadrao()

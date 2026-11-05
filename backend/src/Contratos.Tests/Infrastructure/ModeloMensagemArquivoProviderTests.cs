@@ -1,6 +1,7 @@
 using Contratos.Infrastructure.Envio;
 using Microsoft.Extensions.Configuration;
 using Xunit;
+using Contratos.Application.Messages;
 
 namespace Contratos.Tests.Infrastructure;
 
@@ -57,5 +58,38 @@ public class ModeloMensagemArquivoProviderTests : IDisposable
     public void Dispose()
     {
         if (Directory.Exists(_raiz)) Directory.Delete(_raiz, recursive: true);
+    }
+    
+    [Fact]
+    public void SalvarModeloEmail_DeveGravarELerDeVolta()
+    {
+        var provider = CriarProvider();
+
+        provider.SalvarModeloEmail(new ModeloMensagem("Novo assunto", "Olá, {{NOME_RESPONSAVEL}}.\nSegue o contrato."));
+        var lido = provider.ObterModeloEmail();
+
+        Assert.Equal("Novo assunto", lido.Assunto);
+        Assert.Equal("Olá, {{NOME_RESPONSAVEL}}.\nSegue o contrato.", lido.Corpo);
+    }
+
+    [Fact]
+    public void SalvarModeloEmail_ComCampoDesconhecido_DeveLancarExcecaoESemAlterarOArquivo()
+    {
+        var provider = CriarProvider();
+        var original = provider.ObterModeloEmail();
+
+        Assert.Throws<InvalidOperationException>(
+            () => provider.SalvarModeloEmail(new ModeloMensagem("Assunto", "Olá, {{NOME}}.")));
+
+        Assert.Equal(original, provider.ObterModeloEmail());
+    }
+
+    [Fact]
+    public void ObterModeloPadraoEmail_DeveTerOTextoFornecido()
+    {
+        var padrao = CriarProvider().ObterModeloPadraoEmail();
+
+        Assert.Equal("Carta de Contratação, Portaria CAT 28/2020", padrao.Assunto);
+        Assert.StartsWith("Prezado(a),", padrao.Corpo);
     }
 }

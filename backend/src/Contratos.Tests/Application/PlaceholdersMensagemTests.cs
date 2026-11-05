@@ -44,4 +44,29 @@ public class PlaceholdersMensagemTests
 
         Assert.Contains("{{NOME}}", excecao.Message);
     }
+    [Theory]
+    [InlineData("{{nome_responsavel}}")]
+    [InlineData("{{ CNPJ }}")]
+    [InlineData("{{NOME}}")]
+    public void NomesDesconhecidos_ComCampoInvalido_DeveListarOCampo(string texto)
+    {
+        Assert.Single(PlaceholdersMensagem.NomesDesconhecidos(texto));
+    }
+
+    [Fact]
+    public void NomesDesconhecidos_ComCamposConhecidos_DeveRetornarVazio()
+    {
+        var texto = "Olá {{NOME_RESPONSAVEL}}, {{RAZAO_SOCIAL}} ({{CNPJ}}) em {{DATA_CONTRATO}}.";
+
+        Assert.Empty(PlaceholdersMensagem.NomesDesconhecidos(texto));
+    }
+
+    [Fact]
+    public void Substituir_ComCampoEmMinusculas_DeveLancarExcecaoEmVezDeEnviarLiteral()
+    {
+        var valores = PlaceholdersMensagem.Montar(CriarContrato());
+
+        Assert.Throws<InvalidOperationException>(
+            () => PlaceholdersMensagem.Substituir("Olá, {{nome_responsavel}}.", valores));
+    }
 }

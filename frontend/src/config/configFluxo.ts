@@ -47,6 +47,3 @@ export const COLUNAS_FLUXO: ColunaFluxo[] = [
 
 export const OPCOES_DIAS_CONCLUIDOS = [7, 30, 90]
 export const DIAS_CONCLUIDOS_PADRAO = 7
-
-// A partir de quantos dias sem atividade um contrato em aberto é destacado.
-export const DIAS_PARADO_ALERTA = 3

@@ -8,23 +8,28 @@ namespace Contratos.Infrastructure.Documents;
 
 public sealed class LibreOfficePdfConversorService : IPdfConversorService
 {
-    private readonly string _caminhoExecutavel;
+    private readonly IConfiguration _configuration;
     private readonly TimeSpan _timeout;
     private readonly ILogger<LibreOfficePdfConversorService> _logger;
 
     public LibreOfficePdfConversorService(IConfiguration configuration, ILogger<LibreOfficePdfConversorService> logger)
     {
-        _caminhoExecutavel = configuration["Pdf:CaminhoExecutavelLibreOffice"]
-            ?? throw new InvalidOperationException("Configuração 'Pdf:CaminhoExecutavelLibreOffice' não encontrada.");
+        _configuration = configuration;
 
         var timeoutSegundos = configuration.GetValue<int?>("Pdf:TimeoutSegundos") ?? 30;
         _timeout = TimeSpan.FromSeconds(timeoutSegundos);
         _logger = logger;
     }
 
+    private string CaminhoExecutavel =>
+        _configuration["Pdf:CaminhoExecutavelLibreOffice"]
+        ?? throw new InvalidOperationException("Configuração 'Pdf:CaminhoExecutavelLibreOffice' não encontrada.");
+
     public byte[] ConverterDocxParaPdf(byte[] conteudoDocx)
     {
-        if (!File.Exists(_caminhoExecutavel))
+        var caminhoExecutavel = CaminhoExecutavel;
+
+        if (!File.Exists(caminhoExecutavel))
         {
             throw new ConversaoPdfIndisponivelException(
                 "Não foi possível gerar o PDF: o LibreOffice não foi encontrado neste computador.");
@@ -43,7 +48,7 @@ public sealed class LibreOfficePdfConversorService : IPdfConversorService
 
             var processInfo = new ProcessStartInfo
             {
-                FileName = _caminhoExecutavel,
+                FileName = caminhoExecutavel,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

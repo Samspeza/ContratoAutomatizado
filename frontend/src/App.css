@@ -746,3 +746,116 @@
   gap: 0.15rem;
   font-size: 0.88rem;
 }
+/* Configurações */
+.campo textarea {
+  font-family: var(--fonte-base);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  resize: vertical;
+}
+
+.campo textarea:focus {
+  outline: 2px solid var(--cor-acento);
+  outline-offset: 1px;
+  border-color: var(--cor-acento);
+}
+
+.linha-campo {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.linha-campo .campo {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.verificacao {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.verificacao__item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 0.88rem;
+}
+
+.verificacao__icone {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.verificacao__item--erro .verificacao__icone {
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.verificacao__detalhe {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  word-break: break-all;
+}
+
+.verificacao__item--erro .verificacao__detalhe {
+  color: var(--cor-erro);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.chip {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--cor-texto-suave);
+}
+
+.pasta-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--cor-borda);
+  font-size: 0.88rem;
+}
+
+.pasta-linha__caminho {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  word-break: break-all;
+}

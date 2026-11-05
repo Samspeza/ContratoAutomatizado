@@ -325,12 +325,18 @@ public static class ContratoEndpoints
             return Results.Conflict(new { mensagem = ex.Message });
         }
     }
-    private static async Task<IResult> ObterFluxoAsync(int? diasConcluidos, IContratoRepository repositorio)
+   private static async Task<IResult> ObterFluxoAsync(int? diasConcluidos, IContratoRepository repositorio, IConfiguration configuracao)
     {
         var dias = Math.Clamp(diasConcluidos ?? 7, 1, 365);
+        var diasParado = Math.Clamp(configuracao.GetValue<int?>("Acompanhamento:DiasParado") ?? 3, 1, 60);
+
         var contratos = await repositorio.ListarParaFluxoAsync(DateTime.UtcNow.AddDays(-dias));
 
-        return Results.Ok(contratos.Select(ContratoResumoDto.DeContrato).ToList());
+        return Results.Ok(new
+        {
+            diasParado,
+            contratos = contratos.Select(ContratoResumoDto.DeContrato).ToList()
+        });
     }
     private static async Task<IResult> ObterPainelAsync(IContratoRepository repositorio, IConfiguration configuracao)
     {

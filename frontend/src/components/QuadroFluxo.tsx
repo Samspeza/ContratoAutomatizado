@@ -4,7 +4,6 @@ import { obterFluxo } from '../services/fluxoService'
 import {
   COLUNAS_FLUXO,
   DIAS_CONCLUIDOS_PADRAO,
-  DIAS_PARADO_ALERTA,
   OPCOES_DIAS_CONCLUIDOS,
   type ColunaFluxo
 } from '../config/configFluxo'
@@ -16,12 +15,14 @@ import { Selo } from './Selo'
 interface CartaoFluxoProps {
   item: ContratoResumo
   coluna: ColunaFluxo
+  diasParado: number
   onAbrir: (id: number) => void
 }
 
-function CartaoFluxo({ item, coluna, onAbrir }: CartaoFluxoProps) {
-  const passo = proximoPasso(item.status)
-  const parado = coluna.abertas && diasDesde(item.atualizadoEm) >= DIAS_PARADO_ALERTA
+  function CartaoFluxo({ item, coluna, diasParado, onAbrir }: CartaoFluxoProps) {
+    const passo = proximoPasso(item.status)
+    const parado = coluna.abertas && diasDesde(item.atualizadoEm) >= diasParado
+
 
   let textoTempo: string
   if (!coluna.abertas) {
@@ -59,6 +60,7 @@ export function QuadroFluxo({ ativa, onAbrir }: QuadroFluxoProps) {
   const [erro, setErro] = useState('')
   const [carregadoEm, setCarregadoEm] = useState<Date | null>(null)
   const [chaveAtualizacao, setChaveAtualizacao] = useState(0)
+  const [diasParado, setDiasParado] = useState(3)
 
   // Recarrega quando a aba fica visível, quando o período muda e quando se clica em "Atualizar".
   useEffect(() => {
@@ -70,7 +72,8 @@ export function QuadroFluxo({ ativa, onAbrir }: QuadroFluxoProps) {
     obterFluxo(dias).then((resposta) => {
       if (cancelado) return
       if (resposta.sucesso) {
-        setItens(resposta.dados)
+        setItens(resposta.dados.contratos)
+        setDiasParado(resposta.dados.diasParado)
         setErro('')
         setCarregadoEm(new Date())
       } else {
@@ -142,7 +145,7 @@ export function QuadroFluxo({ ativa, onAbrir }: QuadroFluxoProps) {
               {cartoes.length === 0 && <p className="quadro__vazio">Nenhum contrato aqui.</p>}
 
               {cartoes.map((item) => (
-                <CartaoFluxo key={item.id} item={item} coluna={coluna} onAbrir={onAbrir} />
+               <CartaoFluxo key={item.id} item={item} coluna={coluna} diasParado={diasParado} onAbrir={onAbrir} />
               ))}
             </div>
           )
