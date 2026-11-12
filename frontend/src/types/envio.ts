@@ -6,8 +6,8 @@ export interface PreviaEmail {
   nomeArquivoAnexo: string
 }
 
-export interface PreviaWhatsapp {
-  numeroDestino: string
-  mensagem: string
-  nomeArquivoAnexo: string
+export interface EventoHistorico {
+  dataHora: string
+  tipo: string
+  descricao: string
 }

@@ -15,13 +15,6 @@ public static class DestinatariosValidator
         if (!string.IsNullOrWhiteSpace(dados.EmailDestinatario) && !PadraoEmail.IsMatch(dados.EmailDestinatario.Trim()))
             mensagens.Add("O e-mail do destinatário não parece válido.");
 
-        if (!string.IsNullOrWhiteSpace(dados.WhatsappDestinatario))
-        {
-            var digitos = new string(dados.WhatsappDestinatario.Where(char.IsDigit).ToArray());
-            if (digitos.Length < 10 || digitos.Length > 15)
-                mensagens.Add("O número de WhatsApp do destinatário não parece válido. Inclua o DDD (e o código do país, se for o caso).");
-        }
-
         if (mensagens.Count > 0)
             throw new DestinatariosInvalidosException(mensagens);
     }

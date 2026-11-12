@@ -18,10 +18,10 @@ public sealed record ContratoDto(
     string StatusEmail,
     DateTime? EmailEnviadoEm,
     string? EmailErroMensagem,
-    string? WhatsappDestinatario,
-    string StatusWhatsapp,
-    DateTime? WhatsappEnviadoEm,
-    string? WhatsappErroMensagem)
+    DateTime CriadoEm,
+    bool PodeGerarArquivos,
+    bool PodeEnviarEmail,
+    bool PodeCancelar)
 {
     public static ContratoDto DeContrato(Contrato contrato) => new(
         contrato.Id,
@@ -38,8 +38,8 @@ public sealed record ContratoDto(
         contrato.StatusEmail.ToString(),
         contrato.EmailEnviadoEm,
         contrato.EmailErroMensagem,
-        contrato.WhatsappDestinatario,
-        contrato.StatusWhatsapp.ToString(),
-        contrato.WhatsappEnviadoEm,
-        contrato.WhatsappErroMensagem);
+        contrato.CriadoEm,
+        contrato.PodeGerarArquivos,
+        contrato.PodeEnviarEmail,
+        contrato.PodeCancelar);
 }

@@ -15,8 +15,27 @@ export interface Contrato {
   statusEmail: 'Pendente' | 'Enviado' | 'Erro'
   emailEnviadoEm: string | null
   emailErroMensagem: string | null
-  whatsappDestinatario: string | null
-  statusWhatsapp: 'Pendente' | 'Enviado' | 'Erro'
-  whatsappEnviadoEm: string | null
-  whatsappErroMensagem: string | null
+  criadoEm: string
+  podeGerarArquivos: boolean
+  podeEnviarEmail: boolean
+  podeCancelar: boolean
+}
+
+export interface ContratoResumo {
+  id: number
+  cnpj: string
+  razaoSocial: string
+  criadoEm: string
+  dataContrato: string
+  status: string
+  statusEmail: string
+  atualizadoEm: string
+  emailEnviadoEm: string | null
+}
+
+export interface PaginaContratos {
+  itens: ContratoResumo[]
+  total: number
+  pagina: number
+  tamanho: number
 }

@@ -83,20 +83,6 @@ namespace Contratos.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("StatusWhatsapp")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("WhatsappDestinatario")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("WhatsappEnviadoEm")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("WhatsappErroMensagem")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Cnpj");

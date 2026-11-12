@@ -6,7 +6,6 @@ public enum StatusContrato
     ErroGeracao,
     Gerado,
     ProntoParaEnvio,
-    EnvioParcial,
     Concluido,
     ErroNoEnvio,
     Cancelado

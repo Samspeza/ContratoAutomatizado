@@ -13,14 +13,23 @@ interface VisualizadorContratoProps {
   contrato: Contrato
   onVoltar: () => void
   onContinuarParaEnvio: () => void
-  onNovoContrato: () => void
+  onNovoContrato?: () => void
+  rotuloVoltar?: string
+  podeContinuar?: boolean
 }
 
 const ZOOM_MINIMO = 0.6
 const ZOOM_MAXIMO = 2.0
 const PASSO_ZOOM = 0.2
 
-export function VisualizadorContrato({ contrato, onVoltar, onContinuarParaEnvio, onNovoContrato }: VisualizadorContratoProps) {
+export function VisualizadorContrato({
+  contrato,
+  onVoltar,
+  onContinuarParaEnvio,
+  onNovoContrato,
+  rotuloVoltar = 'Voltar e corrigir',
+  podeContinuar = true
+}: VisualizadorContratoProps) {
   const [totalPaginas, setTotalPaginas] = useState(0)
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [zoom, setZoom] = useState(1)
@@ -109,18 +118,22 @@ export function VisualizadorContrato({ contrato, onVoltar, onContinuarParaEnvio,
           Baixar
         </a>
         <button type="button" className="botao botao--secundario" onClick={onVoltar}>
-          Voltar e corrigir
+          {rotuloVoltar}
         </button>
-        <button type="button" className="botao botao--primario" onClick={onContinuarParaEnvio}>
-          Continuar para envio
-        </button>
+        {podeContinuar && (
+          <button type="button" className="botao botao--primario" onClick={onContinuarParaEnvio}>
+            Continuar para envio
+          </button>
+        )}
       </div>
 
+     {onNovoContrato && (
       <div className="acoes">
         <button type="button" className="botao botao--texto" onClick={onNovoContrato}>
           Começar um novo contrato
         </button>
       </div>
+    )}
     </section>
   )
 }

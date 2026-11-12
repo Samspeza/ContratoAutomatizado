@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 using Contratos.Infrastructure.Persistence;
+using Contratos.Infrastructure.Configuracoes;
 
 // A raiz da aplicação é a pasta do executável (e não a "pasta atual" de quem o iniciou),
 // para que o wwwroot e o appsettings sejam encontrados mesmo quando aberto por um atalho.
@@ -20,6 +21,13 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 var pastas = new PastasAplicacao(builder.Configuration);
 pastas.GarantirEstrutura();
+
+// Configurações alteradas pela tela de Configurações ficam num arquivo próprio e valem acima do
+// appsettings.json. O recarregamento é feito pelo próprio sistema ao salvar (reloadOnChange desligado).
+builder.Configuration.AddJsonFile(
+    ConfiguracoesUsuarioService.CaminhoArquivo(pastas),
+    optional: true,
+    reloadOnChange: false);
 
 if (string.IsNullOrWhiteSpace(builder.Configuration["Documentos:CaminhoTemplate"]))
     TemplatePadraoInicializador.GarantirTemplate(pastas);
@@ -91,6 +99,7 @@ app.UseStaticFiles();
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 app.MapCnpjEndpoints();
 app.MapContratoEndpoints();
+app.MapConfiguracoesEndpoints();
 
 app.MapFallbackToFile("index.html");
 

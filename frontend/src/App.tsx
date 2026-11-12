@@ -3,19 +3,26 @@ import type { Empresa } from './types/empresa'
 import type { DadosContrato as DadosContratoType } from './types/dadosContrato'
 import type { Contrato } from './types/contrato'
 import { Cabecalho } from './components/Cabecalho'
+import { Navegacao, type Secao } from './components/Navegacao'
 import { IndicadorEtapas, type EtapaFluxo } from './components/IndicadorEtapas'
 import { ConsultaCnpj } from './components/ConsultaCnpj'
 import { DadosContrato } from './components/DadosContrato'
 import { RevisaoContrato } from './components/RevisaoContrato'
 import { VisualizadorContrato } from './components/VisualizadorContrato'
 import { TelaEnvio } from './components/TelaEnvio'
+import { AreaContratos, type PedidoAbertura } from './components/AreaContratos'
+import { QuadroFluxo } from './components/QuadroFluxo'
 import { gerarContrato, gerarContratoNovamente, type GerarContratoResultado } from './services/contratoService'
 import { avancarParaEnvio } from './services/envioService'
+import { PainelResumo } from './components/PainelResumo'
+import { AreaConfiguracoes } from './components/AreaConfiguracoes'
 import './App.css'
 
 type Etapa = 'formulario' | 'revisao' | 'visualizacao' | 'envio'
 
 function App() {
+  const [secao, setSecao] = useState<Secao>('novo')
+  const [pedidoAbertura, setPedidoAbertura] = useState<PedidoAbertura | null>(null)
   const [empresaSelecionada, setEmpresaSelecionada] = useState<Empresa | null>(null)
   const [dadosContrato, setDadosContrato] = useState<DadosContratoType | null>(null)
   const [etapa, setEtapa] = useState<Etapa>('formulario')
@@ -96,6 +103,11 @@ function App() {
     setChaveReinicio((chave) => chave + 1)
   }
 
+  function handleAbrirContratoDoFluxo(id: number) {
+    setPedidoAbertura({ id, chave: Date.now() })
+    setSecao('contratos')
+  }
+
   const etapaIndicador: EtapaFluxo = !empresaSelecionada
     ? 'consulta'
     : etapa === 'formulario'
@@ -107,10 +119,11 @@ function App() {
           : 'documento'
 
   return (
-    <div className="aplicacao">
+    <div className={secao === 'novo' ? 'aplicacao' : 'aplicacao aplicacao--larga'}>
       <Cabecalho />
+      <Navegacao secaoAtual={secao} onMudar={setSecao} />
 
-      <div className="conteudo">
+      <div className="conteudo" hidden={secao !== 'novo'}>
         <IndicadorEtapas etapaAtual={etapaIndicador} />
 
         <ConsultaCnpj key={chaveReinicio} onEmpresaEncontrada={handleEmpresaEncontrada} />
@@ -162,6 +175,20 @@ function App() {
             onContratoAtualizado={setContratoGerado}
           />
         )}
+      </div>
+
+      <div className="conteudo" hidden={secao !== 'contratos'}>
+        <AreaContratos ativa={secao === 'contratos'} pedidoAbertura={pedidoAbertura} />
+      </div>
+
+      <div className="conteudo" hidden={secao !== 'fluxo'}>
+        <QuadroFluxo ativa={secao === 'fluxo'} onAbrir={handleAbrirContratoDoFluxo} />
+      </div>
+            <div className="conteudo" hidden={secao !== 'resumo'}>
+        <PainelResumo ativa={secao === 'resumo'} onAbrir={handleAbrirContratoDoFluxo} />
+      </div>
+      <div className="conteudo" hidden={secao !== 'configuracoes'}>
+        <AreaConfiguracoes ativa={secao === 'configuracoes'} />
       </div>
     </div>
   )

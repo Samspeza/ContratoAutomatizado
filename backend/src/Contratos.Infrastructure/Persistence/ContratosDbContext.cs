@@ -11,6 +11,12 @@ public sealed class ContratosDbContext : DbContext
 
     public ContratosDbContext(DbContextOptions<ContratosDbContext> options) : base(options) { }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<UtcNullableDateTimeConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Contrato>(entidade =>
@@ -21,7 +27,6 @@ public sealed class ContratosDbContext : DbContext
             entidade.Property(c => c.PercentualHonorarios).HasPrecision(5, 2);
             entidade.Property(c => c.Status).HasConversion<string>().HasMaxLength(30);
             entidade.Property(c => c.StatusEmail).HasConversion<string>().HasMaxLength(20);
-            entidade.Property(c => c.StatusWhatsapp).HasConversion<string>().HasMaxLength(20);
 
             entidade.HasIndex(c => c.Status);
             entidade.HasIndex(c => c.Cnpj);

@@ -1,6 +1,10 @@
+using System.Globalization;
+using System.Text;
 using Contratos.Application.Interfaces;
+using Contratos.Application.Queries;
 using Contratos.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Contratos.Domain.Enums;
 
 namespace Contratos.Infrastructure.Persistence;
 
@@ -33,5 +37,105 @@ public sealed class ContratoRepository : IContratoRepository
         contrato.AtualizadoEm = DateTime.UtcNow;
         _contexto.Contratos.Update(contrato);
         await _contexto.SaveChangesAsync();
+    }
+
+    public async Task<PaginaDeContratos> ListarAsync(FiltroContratos filtro)
+    {
+        var consulta = _contexto.Contratos.AsNoTracking().AsQueryable();
+
+        if (filtro.Status.HasValue)
+            consulta = consulta.Where(c => c.Status == filtro.Status.Value);
+
+        if (filtro.CriadoDesdeUtc.HasValue)
+            consulta = consulta.Where(c => c.CriadoEm >= filtro.CriadoDesdeUtc.Value);
+
+        if (filtro.CriadoAteUtcExclusivo.HasValue)
+            consulta = consulta.Where(c => c.CriadoEm < filtro.CriadoAteUtcExclusivo.Value);
+
+        var candidatos = await consulta
+            .OrderByDescending(c => c.CriadoEm)
+            .ThenByDescending(c => c.Id)
+            .ToListAsync();
+
+        // A busca de texto é feita em memória porque o SQLite não ignora acentos ("sao" x "SÃO").
+        // Para uso local (milhares de contratos, no máximo) o custo é desprezível.
+        if (!string.IsNullOrWhiteSpace(filtro.Busca))
+        {
+            var termo = Normalizar(filtro.Busca.Trim());
+            var digitos = new string(filtro.Busca.Where(char.IsDigit).ToArray());
+
+            candidatos = candidatos
+                .Where(c => Normalizar(c.RazaoSocial).Contains(termo)
+                            || (digitos.Length > 0 && c.Cnpj.Contains(digitos)))
+                .ToList();
+        }
+
+        var itens = candidatos
+            .Skip((filtro.Pagina - 1) * filtro.Tamanho)
+            .Take(filtro.Tamanho)
+            .ToList();
+
+        return new PaginaDeContratos(itens, candidatos.Count);
+    }
+
+    public async Task<ResumoDeContratos> ObterResumoAsync(DateTime inicioDoDiaUtc, DateTime paradosAteUtc, int maximoPendencias)
+    {
+        var contratos = _contexto.Contratos.AsNoTracking();
+
+        var criadosHoje = await contratos.CountAsync(c => c.CriadoEm >= inicioDoDiaUtc);
+        var enviadosHoje = await contratos.CountAsync(c => c.EmailEnviadoEm >= inicioDoDiaUtc);
+
+        var aguardandoEnvio = await contratos.CountAsync(c =>
+            c.Status == StatusContrato.Gerado || c.Status == StatusContrato.ProntoParaEnvio);
+
+        var comErro = await contratos.CountAsync(c =>
+            c.Status == StatusContrato.ErroGeracao || c.Status == StatusContrato.ErroNoEnvio);
+
+        // Pendência = erro (sempre) ou contrato em aberto sem atividade desde "paradosAteUtc".
+        var pendencias = contratos.Where(c =>
+            c.Status == StatusContrato.ErroGeracao
+            || c.Status == StatusContrato.ErroNoEnvio
+            || ((c.Status == StatusContrato.Rascunho
+                || c.Status == StatusContrato.Gerado
+                || c.Status == StatusContrato.ProntoParaEnvio)
+                && c.AtualizadoEm <= paradosAteUtc));
+
+        var totalPendencias = await pendencias.CountAsync();
+
+        var listaPendencias = await pendencias
+            .OrderBy(c => c.AtualizadoEm)
+            .ThenBy(c => c.Id)
+            .Take(maximoPendencias)
+            .ToListAsync();
+
+        return new ResumoDeContratos(criadosHoje, enviadosHoje, aguardandoEnvio, comErro, totalPendencias, listaPendencias);
+    }
+
+    public async Task<IReadOnlyList<Contrato>> ListarParaFluxoAsync(DateTime concluidosDesdeUtc)
+    {
+        // Tudo que ainda exige ação aparece sempre, por mais antigo que seja.
+        var emAberto = await _contexto.Contratos
+            .AsNoTracking()
+            .Where(c => c.Status != StatusContrato.Concluido && c.Status != StatusContrato.Cancelado)
+            .ToListAsync();
+
+        // Os concluídos entram só dentro do período escolhido, para a coluna não crescer para sempre.
+        var concluidos = await _contexto.Contratos
+            .AsNoTracking()
+            .Where(c => c.Status == StatusContrato.Concluido && c.EmailEnviadoEm >= concluidosDesdeUtc)
+            .ToListAsync();
+
+        return emAberto
+            .Concat(concluidos)
+            .OrderByDescending(c => c.AtualizadoEm)
+            .ThenByDescending(c => c.Id)
+            .ToList();
+    }
+
+    private static string Normalizar(string texto)
+    {
+        var decomposto = texto.Normalize(NormalizationForm.FormD);
+        var semAcentos = decomposto.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark);
+        return new string(semAcentos.ToArray()).ToUpperInvariant();
     }
 }

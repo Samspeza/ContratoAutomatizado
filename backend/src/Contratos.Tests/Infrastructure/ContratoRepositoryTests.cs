@@ -9,6 +9,7 @@ namespace Contratos.Tests.Infrastructure;
 public class ContratoRepositoryTests : IDisposable
 {
     private readonly string _caminhoBanco;
+    private readonly DbContextOptions<ContratosDbContext> _opcoes;
     private readonly ContratosDbContext _contexto;
     private readonly ContratoRepository _repositorio;
 
@@ -16,11 +17,11 @@ public class ContratoRepositoryTests : IDisposable
     {
         _caminhoBanco = Path.Combine(Path.GetTempPath(), $"contratos_teste_{Guid.NewGuid()}.db");
 
-        var opcoes = new DbContextOptionsBuilder<ContratosDbContext>()
+        _opcoes = new DbContextOptionsBuilder<ContratosDbContext>()
             .UseSqlite($"Data Source={_caminhoBanco}")
             .Options;
 
-        _contexto = new ContratosDbContext(opcoes);
+        _contexto = new ContratosDbContext(_opcoes);
         _contexto.Database.EnsureCreated();
         _repositorio = new ContratoRepository(_contexto);
     }
@@ -30,7 +31,7 @@ public class ContratoRepositoryTests : IDisposable
     {
         var contrato = Contrato.CriarRascunho(
             "12345678000190", "EMPRESA TESTE LTDA", "Rua Teste, 100",
-            25, 3, new DateOnly(2026, 9, 29),
+            25, 3, new DateOnly(2026, 10, 28),
             new List<ContratoResponsavel>
             {
                 new() { Nome = "Fulano de Tal", Cpf = "111.444.777-35" },
@@ -54,7 +55,7 @@ public class ContratoRepositoryTests : IDisposable
     {
         var contrato = Contrato.CriarRascunho(
             "12345678000190", "EMPRESA TESTE LTDA", "Rua Teste, 100",
-            25, 3, new DateOnly(2026, 9, 29), new List<ContratoResponsavel>());
+            25, 3, new DateOnly(2026, 10, 28), new List<ContratoResponsavel>());
 
         var id = await _repositorio.CriarAsync(contrato);
         var dataOriginal = contrato.AtualizadoEm;
@@ -69,12 +70,31 @@ public class ContratoRepositoryTests : IDisposable
         Assert.Equal(2, recuperado.Historico.Count);
     }
 
+    [Fact]
+    public async Task ObterPorId_EmNovoContexto_DeveDevolverDatasEmUtc()
+    {
+        var contrato = Contrato.CriarRascunho(
+            "12345678000190", "EMPRESA TESTE LTDA", "Rua Teste, 100",
+            25, 3, new DateOnly(2026, 10, 28), new List<ContratoResponsavel>());
+        contrato.MarcarComoGerado("caminho.docx", "caminho.pdf");
+        contrato.AvancarParaEnvio();
+        contrato.DefinirEmailDestinatario("cliente@empresa.com.br");
+        contrato.MarcarEmailEnviado();
+
+        var id = await _repositorio.CriarAsync(contrato);
+
+        // Contexto novo: obriga a ler do banco em vez de devolver o objeto já rastreado.
+        using var outroContexto = new ContratosDbContext(_opcoes);
+        var recuperado = await new ContratoRepository(outroContexto).ObterPorIdAsync(id);
+
+        Assert.Equal(DateTimeKind.Utc, recuperado!.CriadoEm.Kind);
+        Assert.Equal(DateTimeKind.Utc, recuperado.EmailEnviadoEm!.Value.Kind);
+        Assert.All(recuperado.Historico, evento => Assert.Equal(DateTimeKind.Utc, evento.DataHora.Kind));
+    }
+
     public void Dispose()
     {
-        _contexto.Database.EnsureDeleted();
         _contexto.Dispose();
-
-        if (File.Exists(_caminhoBanco))
-            File.Delete(_caminhoBanco);
+        if (File.Exists(_caminhoBanco)) File.Delete(_caminhoBanco);
     }
 }

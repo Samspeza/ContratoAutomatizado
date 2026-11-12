@@ -5,6 +5,8 @@ using Contratos.Application.Interfaces;
 using Contratos.Application.Validation;
 using Contratos.Domain.Entities;
 using Contratos.Domain.Exceptions;
+using Contratos.Application.Queries;
+using Contratos.Domain.Enums;
 
 namespace Contratos.Api.Endpoints;
 
@@ -15,15 +17,19 @@ public static class ContratoEndpoints
         app.MapPost("/api/contratos", CriarEGerarAsync);
         app.MapPost("/api/contratos/{id:int}/gerar", GerarNovamenteAsync);
         app.MapGet("/api/contratos/{id:int}", ObterAsync);
+        app.MapGet("/api/contratos/{id:int}/historico", ObterHistoricoAsync);
         app.MapGet("/api/contratos/{id:int}/pdf", (int id, bool? baixar, IContratoRepository repositorio) =>
             ObterArquivoAsync(id, ".pdf", baixar ?? false, repositorio));
         app.MapGet("/api/contratos/{id:int}/docx", (int id, IContratoRepository repositorio) =>
             ObterArquivoAsync(id, ".docx", true, repositorio));
-        app.MapPut("/api/contratos/{id:int}/destinatarios", AtualizarDestinatariosAsync);
         app.MapPost("/api/contratos/{id:int}/avancar-para-envio", AvancarParaEnvioAsync);
+        app.MapPut("/api/contratos/{id:int}/destinatarios", AtualizarDestinatariosAsync);
         app.MapGet("/api/contratos/{id:int}/previa-email", ObterPreviaEmailAsync);
-        app.MapGet("/api/contratos/{id:int}/previa-whatsapp", ObterPreviaWhatsappAsync);
         app.MapPost("/api/contratos/{id:int}/enviar-email", EnviarEmailAsync);
+        app.MapGet("/api/contratos", ListarAsync);
+        app.MapPost("/api/contratos/{id:int}/cancelar", CancelarAsync);
+        app.MapGet("/api/contratos/fluxo", ObterFluxoAsync);
+        app.MapGet("/api/contratos/resumo", ObterPainelAsync);
     }
 
     private static async Task<IResult> CriarEGerarAsync(
@@ -41,6 +47,13 @@ public static class ContratoEndpoints
         catch (DadosContratoInvalidosException ex)
         {
             return Results.BadRequest(new { mensagens = ex.Mensagens });
+        }
+        if (dados.DataContrato is null)
+        {
+            return Results.BadRequest(new
+            {
+                mensagem = "A data do contrato é obrigatória."
+            });
         }
 
         var contrato = Contrato.CriarRascunho(
@@ -73,6 +86,9 @@ public static class ContratoEndpoints
     {
         var contrato = await repositorio.ObterPorIdAsync(id);
         if (contrato is null) return Results.NotFound();
+
+        if (!contrato.PodeGerarArquivos)
+            return Results.Conflict(new { mensagem = "Este contrato já foi gerado." });
 
         if (string.IsNullOrWhiteSpace(contrato.DadosOriginaisJson))
         {
@@ -129,6 +145,30 @@ public static class ContratoEndpoints
         return contrato is null ? Results.NotFound() : Results.Ok(ContratoDto.DeContrato(contrato));
     }
 
+
+    private static async Task<IResult> ObterHistoricoAsync(
+        int id,
+        IContratoRepository repositorio)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+
+        if (contrato is null)
+            return Results.NotFound();
+
+        var eventos = contrato.Historico
+            .OrderBy(h => h.DataHora)
+            .ThenBy(h => h.Id)
+            .Select(h => new
+            {
+                dataHora = h.DataHora,
+                tipo = h.Tipo.ToString(),
+                descricao = h.Descricao
+            })
+            .ToList();
+
+        return Results.Ok(eventos);
+    }
+
     private static async Task<IResult> ObterArquivoAsync(int id, string extensao, bool baixar, IContratoRepository repositorio)
     {
         var contrato = await repositorio.ObterPorIdAsync(id);
@@ -146,6 +186,7 @@ public static class ContratoEndpoints
         var nomeArquivo = baixar ? Path.GetFileName(caminho) : null;
         return Results.File(bytes, tipoConteudo, nomeArquivo, enableRangeProcessing: true);
     }
+
     private static async Task<IResult> AvancarParaEnvioAsync(int id, IContratoRepository repositorio)
     {
         var contrato = await repositorio.ObterPorIdAsync(id);
@@ -169,6 +210,9 @@ public static class ContratoEndpoints
         var contrato = await repositorio.ObterPorIdAsync(id);
         if (contrato is null) return Results.NotFound();
 
+        if (!contrato.PodeEnviarEmail)
+            return Results.Conflict(new { mensagem = "Este contrato não pode receber destinatário no estado atual." });
+
         try
         {
             DestinatariosValidator.Validar(dados);
@@ -178,7 +222,7 @@ public static class ContratoEndpoints
             return Results.BadRequest(new { mensagens = ex.Mensagens });
         }
 
-        contrato.DefinirDestinatarios(dados.EmailDestinatario, dados.WhatsappDestinatario);
+        contrato.DefinirEmailDestinatario(dados.EmailDestinatario);
         await repositorio.AtualizarAsync(contrato);
 
         return Results.Ok(ContratoDto.DeContrato(contrato));
@@ -199,25 +243,14 @@ public static class ContratoEndpoints
         }
     }
 
-    private static async Task<IResult> ObterPreviaWhatsappAsync(int id, IContratoRepository repositorio, IMensagemEnvioService mensagens)
+    private static async Task<IResult> EnviarEmailAsync(
+        int id, IContratoRepository repositorio, IEmailEnvioService emailEnvio, ILogger<Program> logger)
     {
         var contrato = await repositorio.ObterPorIdAsync(id);
         if (contrato is null) return Results.NotFound();
 
-        try
-        {
-            return Results.Ok(mensagens.MontarPreviaWhatsapp(contrato));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Results.BadRequest(new { mensagem = ex.Message });
-        }
-    }
-    private static async Task<IResult> EnviarEmailAsync(
-    int id, IContratoRepository repositorio, IEmailEnvioService emailEnvio, ILogger<Program> logger)
-    {
-        var contrato = await repositorio.ObterPorIdAsync(id);
-        if (contrato is null) return Results.NotFound();
+        if (!contrato.PodeEnviarEmail)
+            return Results.Conflict(new { mensagem = "Este contrato não pode ser enviado no estado atual." });
 
         if (string.IsNullOrWhiteSpace(contrato.EmailDestinatario))
             return Results.BadRequest(new { mensagem = "Este contrato não possui um destinatário de e-mail configurado." });
@@ -236,5 +269,95 @@ public static class ContratoEndpoints
             logger.LogError(ex, "Falha ao enviar e-mail do contrato {ContratoId}.", id);
             return Results.Json(new { mensagem = ex.Message }, statusCode: StatusCodes.Status502BadGateway);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(new { mensagem = ex.Message });
+        }
+    }
+    private static async Task<IResult> ListarAsync(
+    string? busca,
+    StatusContrato? status,
+    DateOnly? de,
+    DateOnly? ate,
+    int? pagina,
+    int? tamanho,
+    IContratoRepository repositorio)
+    {
+        var paginaAtual = Math.Max(1, pagina ?? 1);
+        var tamanhoPagina = Math.Clamp(tamanho ?? 20, 1, 100);
+
+        var filtro = new FiltroContratos(
+            busca,
+            status,
+            InicioDoDiaEmUtc(de),
+            InicioDoDiaEmUtc(ate?.AddDays(1)),
+            paginaAtual,
+            tamanhoPagina);
+
+        var resultado = await repositorio.ListarAsync(filtro);
+
+        return Results.Ok(new PaginaContratosDto(
+            resultado.Itens.Select(ContratoResumoDto.DeContrato).ToList(),
+            resultado.Total,
+            paginaAtual,
+            tamanhoPagina));
+    }
+
+    // As datas do filtro vêm como dia do calendário do usuário; o banco guarda UTC.
+    private static DateTime? InicioDoDiaEmUtc(DateOnly? data) =>
+        data.HasValue
+            ? DateTime.SpecifyKind(data.Value.ToDateTime(TimeOnly.MinValue), DateTimeKind.Local).ToUniversalTime()
+            : null;
+
+    private static async Task<IResult> CancelarAsync(int id, IContratoRepository repositorio)
+    {
+        var contrato = await repositorio.ObterPorIdAsync(id);
+        if (contrato is null) return Results.NotFound();
+
+        try
+        {
+            contrato.Cancelar();
+            await repositorio.AtualizarAsync(contrato);
+            return Results.Ok(ContratoDto.DeContrato(contrato));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.Conflict(new { mensagem = ex.Message });
+        }
+    }
+   private static async Task<IResult> ObterFluxoAsync(int? diasConcluidos, IContratoRepository repositorio, IConfiguration configuracao)
+    {
+        var dias = Math.Clamp(diasConcluidos ?? 7, 1, 365);
+        var diasParado = Math.Clamp(configuracao.GetValue<int?>("Acompanhamento:DiasParado") ?? 3, 1, 60);
+
+        var contratos = await repositorio.ListarParaFluxoAsync(DateTime.UtcNow.AddDays(-dias));
+
+        return Results.Ok(new
+        {
+            diasParado,
+            contratos = contratos.Select(ContratoResumoDto.DeContrato).ToList()
+        });
+    }
+    private static async Task<IResult> ObterPainelAsync(IContratoRepository repositorio, IConfiguration configuracao)
+    {
+        const int MaximoPendenciasExibidas = 8;
+
+        var diasParado = Math.Clamp(configuracao.GetValue<int?>("Acompanhamento:DiasParado") ?? 3, 1, 60);
+
+        // "Hoje" é o dia do calendário do computador do usuário (o sistema roda localmente);
+        // o banco guarda tudo em UTC.
+        var inicioDoDiaUtc = DateTime.Today.ToUniversalTime();
+        var paradosAteUtc = DateTime.UtcNow.AddDays(-diasParado);
+
+        var resumo = await repositorio.ObterResumoAsync(inicioDoDiaUtc, paradosAteUtc, MaximoPendenciasExibidas);
+
+        return Results.Ok(new ResumoContratosDto(
+            resumo.CriadosHoje,
+            resumo.EnviadosHoje,
+            resumo.AguardandoEnvio,
+            resumo.ComErro,
+            diasParado,
+            resumo.TotalPendencias,
+            resumo.Pendencias.Select(ContratoResumoDto.DeContrato).ToList()));
     }
 }
